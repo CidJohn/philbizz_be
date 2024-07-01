@@ -32,11 +32,10 @@ const getTreeViewChild = (req, res) => {
         acc,
         { parentID, parentName, parentPath, childID, childName, childPath }
       ) => {
-        // Find existing parent or create new parent object
-        let parent = acc.find((item) => item.id === parentID);
+        let parent = acc.find((item) => item.parentID === parentID);
         if (!parent) {
           parent = {
-            id: parentID,
+            parentID: parentID, 
             name: parentName,
             path: parentPath,
             children: [],
@@ -44,13 +43,12 @@ const getTreeViewChild = (req, res) => {
           acc.push(parent);
         }
 
-        // If there is a child, add it to the parent's children array
         if (childID) {
           parent.children.push({
             id: childID,
             name: childName,
             path: childPath,
-            children: [], // Assuming children for child are empty for now
+            children: [],
           });
         }
 
@@ -59,7 +57,10 @@ const getTreeViewChild = (req, res) => {
       []
     );
 
-    res.json(formattedData);
+    // Remove parentID from the final JSON structure
+    const finalData = formattedData.map(({ parentID, ...rest }) => rest);
+
+    res.status(200).json(finalData);
   });
 };
 

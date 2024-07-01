@@ -43,7 +43,7 @@ const getNavbar = (req, res) => {
       },
       []
     );
-    res.json(formattedData);
+    res.status(200).json(formattedData);
   });
 };
 
