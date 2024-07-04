@@ -1,14 +1,15 @@
-require("dotenv").config();
+const env = require("dotenv");
 const express = require("express");
 const bodyParser = require("body-parser");
 const userRoutes = require("./routes/userRoutes");
 const errorHandler = require("./middleware/errorHandler");
-const cors = require("cors");
+const cors = require("cors"); 
 const db = require("./db_conn/db"); // Import the database connection
 const path = require("path");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+env.config();
 
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "http://localhost:3000");
