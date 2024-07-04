@@ -1,20 +1,13 @@
 const mysql = require("mysql2");
+const dotenv = require("dotenv");
+
+dotenv.config();
 
 const dbConfig = {
-  // host: process.env.DB_HOTS || "localhost",
-  // user: process.env.DB_USER || "root",
-  // password: process.env.DB_PASSWORD || "C1dj0hn31",
-  // database: process.env.DB_DATABASE || "philtongzonedb",
-  host:
-    process.env.DB_HOTS ||
-    "bnrj6ffsalbrdllei68k-mysql.services.clever-cloud.com",
-  user: process.env.DB_USER || "uojccqt6egyefdao",
-  password: process.env.DB_PASSWORD || "cUdZJpVngxAowWytcw4N",
-  database: process.env.DB_DATABASE || "bnrj6ffsalbrdllei68k",
-  port: process.env.DB_PORT || 3306,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
+  host: process.env.HOST,
+  user: process.env.USER,
+  password: process.env.PASSWORD,
+  database: process.env.DATABASE,
 };
 
 let connection;
