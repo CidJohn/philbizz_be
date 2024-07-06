@@ -1,16 +1,32 @@
 const db = require("../db_conn/db");
 
 const cardSettings = (req, res) => {
-  const searchInput = `%${req.body.searchInput}%`; // Extract the search input from the request body and format it for the SQL query
-  const sql = `SELECT * FROM tblcardsetting t1
-               INNER JOIN tblsettings t2 ON t1.setting_id = t2.id 
-               WHERE tblsettings.name LIKE ?`;
+  const businessType = req.params.type;
+  const query = `
+  SELECT 
+      bt.businessType,
+      b.header,
+      b.image AS business_image,
+      b.paragraph,
+      cs.location,
+      cs.title,
+      cs.images AS card_image,
+      cs.description
+  FROM 
+      tblbusiness_types bt
+  JOIN 
+      tblbusinesses b ON bt.id = b.businessTypeId
+  JOIN 
+      tblcard_settings cs ON b.id = cs.businessId
+  WHERE 
+      bt.path = ?
+`;
 
-  db.query(sql, [searchInput], (err, results) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
+  db.query(query, [businessType], (error, results) => {
+    if (error) {
+      return res.status(500).json({ error: error.message });
     }
-    res.status(200).json(results); // Return the search results
+    res.json(results);
   });
 };
 

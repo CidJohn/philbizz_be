@@ -8,6 +8,7 @@ const dbConfig = {
   user: process.env.USER,
   password: process.env.PASSWORD,
   database: process.env.DATABASE,
+  connectionLimit: 10,
 };
 
 let connection;
