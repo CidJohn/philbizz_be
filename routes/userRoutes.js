@@ -15,7 +15,7 @@ router.get("/treeview/parent", getTreeViewParent);
 router.get("/treeview/child", getTreeViewChild);
 router.get("/navbarcontent", getNavbar);
 router.get("/translation/language", getLanguage);
+router.get("/business-types/:type", cardSettings);
 router.post("/users", addUser);
-router.post("/card-settings", cardSettings);
 
 module.exports = router;
