@@ -16,6 +16,7 @@ const getTreeViewChild = (req, res) => {
            t2.id AS childID, t2.name AS childName, t2.path AS childPath
     FROM tbltreeviewparent t1
     LEFT JOIN tbltreeviewchildmenu t2 ON t1.id = t2.parentID 
+    ORDER BY t2.name ASC
     ;
   `;
 
@@ -35,7 +36,7 @@ const getTreeViewChild = (req, res) => {
         let parent = acc.find((item) => item.parentID === parentID);
         if (!parent) {
           parent = {
-            parentID: parentID, 
+            parentID: parentID,
             name: parentName,
             path: parentPath,
             children: [],

@@ -30,4 +30,16 @@ const cardSettings = (req, res) => {
   });
 };
 
-module.exports = { cardSettings };
+const cardPath = (req, res) => {
+  const sql = `SELECT t2.id, t1.title FROM tblcard_settings t1 
+  JOIN tblbusinesses t2 ON t1.businessID = t2.id`;
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error("Database query error:", err);
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(results);
+  });
+};
+
+module.exports = { cardSettings, cardPath };
