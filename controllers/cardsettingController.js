@@ -42,4 +42,16 @@ const cardPath = (req, res) => {
   });
 };
 
-module.exports = { cardSettings, cardPath };
+const cardDesc = (req, res) => {
+  const header = req.params.type;
+
+  const sql = `SELECT * FROM tblbusinesses WHERE descname = ?`;
+
+  db.query(sql, [header], (error, results) => {
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+    res.json(results);
+  });
+};
+module.exports = { cardSettings, cardPath, cardDesc };
