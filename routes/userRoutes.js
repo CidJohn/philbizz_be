@@ -8,6 +8,7 @@ const {
 const {
   cardSettings,
   cardPath,
+  cardDesc,
 } = require("../controllers/cardsettingController");
 const { getLanguage } = require("../controllers/translateController");
 
@@ -19,6 +20,7 @@ router.get("/treeview/child", getTreeViewChild);
 router.get("/navbarcontent", getNavbar);
 router.get("/translation/language", getLanguage);
 router.get("/business-types/:type", cardSettings);
+router.get("/card-desciption/:type", cardDesc);
 router.get("/card_path", cardPath);
 router.post("/users", addUser);
 
