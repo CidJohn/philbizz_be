@@ -1,25 +1,26 @@
 const db = require("../db_conn/db");
 
-const getUsers = (req, res) => {
+// Get all users
+const getUsers = async (req, res) => {
   const sql = "SELECT * FROM tbluseraccount";
-  db.query(sql, (err, results) => {
-    if (err) {
-      console.error("Database query error:", err);
-      return res.status(500).json({ error: err.message });
-    }
+  try {
+    const results = await db.query(sql);
     res.json(results);
-  });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
-const addUser = (req, res) => {
+// Add a new user
+const addUser = async (req, res) => {
   const newUser = req.body;
   const sql = "INSERT INTO users SET ?";
-  db.query(sql, newUser, (err, result) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    }
+  try {
+    const result = await query(sql, newUser);
     res.status(201).json({ id: result.insertId, ...newUser });
-  });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
 module.exports = { getUsers, addUser };

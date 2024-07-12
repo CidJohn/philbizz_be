@@ -9,9 +9,10 @@ const {
   cardSettings,
   cardPath,
   cardDesc,
+  cardInfo,
 } = require("../controllers/cardsettingController");
 const { getLanguage } = require("../controllers/translateController");
-
+const { getBusinessData } = require("../controllers/businessController");
 const router = express.Router();
 
 router.get("/users", getUsers);
@@ -22,6 +23,8 @@ router.get("/translation/language", getLanguage);
 router.get("/business-types/:type", cardSettings);
 router.get("/card-desciption/:type", cardDesc);
 router.get("/card_path", cardPath);
+router.get("/card_info/:type", cardInfo);
+router.get("/business-data", getBusinessData);
 router.post("/users", addUser);
 
 module.exports = router;
