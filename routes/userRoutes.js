@@ -10,6 +10,7 @@ const {
   cardPath,
   cardDesc,
   cardInfo,
+  imageURL,
 } = require("../controllers/cardsettingController");
 const { getLanguage } = require("../controllers/translateController");
 const { getBusinessData } = require("../controllers/businessController");
@@ -25,6 +26,7 @@ router.get("/card-desciption/:type", cardDesc);
 router.get("/card_path", cardPath);
 router.get("/card_info/:type", cardInfo);
 router.get("/business-data", getBusinessData);
+router.get("/imageURL/:type", imageURL);
 router.post("/users", addUser);
 
 module.exports = router;

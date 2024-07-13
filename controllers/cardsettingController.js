@@ -68,9 +68,9 @@ const cardDesc = async (req, res) => {
 
 const cardInfo = async (req, res) => {
   const header = req.params.type;
-  const sql = `SELECT t1.id AS ParentID, t2.name AS Name, t2.icon_image
-                ,t2.image1, t2.image2, t2.image3, t2.image4 FROM tblcard_settings t1
-                LEFT JOIN tblcard_info t2
+  const sql = `SELECT t1.id AS ParentID, t2.name AS Name,t2.desc, t2.icon_image
+                ,t2.menu_image, t2.location_image FROM tblcard_settings t1
+                INNER JOIN tblcard_info t2
                 ON t1.id = t2.cardID 
                 WHERE t2.name = ?`;
   try {
@@ -81,4 +81,19 @@ const cardInfo = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-module.exports = { cardSettings, cardPath, cardDesc, cardInfo };
+
+const imageURL = async (req, res) => {
+  const header = req.params.type;
+  const sql = `SELECT t1.id AS ParentID, t2.imageURL FROM tblcard_info t1
+                LEFT JOIN tblcard_image t2
+                ON t1.imageID = t2.imageID
+                WHERE t1.name = ?`;
+  try {
+    const [results] = await db.query(sql, [header]);
+    res.json(results);
+  } catch (error) {
+    console.error("Database query error:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+module.exports = { cardSettings, cardPath, cardDesc, cardInfo, imageURL };
