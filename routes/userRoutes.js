@@ -13,7 +13,10 @@ const {
   imageURL,
 } = require("../controllers/cardsettingController");
 const { getLanguage } = require("../controllers/translateController");
-const { getBusinessData } = require("../controllers/businessController");
+const {
+  getBusinessData,
+  getHomeViewBusiness,
+} = require("../controllers/businessController");
 const router = express.Router();
 
 router.get("/users", getUsers);
@@ -27,6 +30,7 @@ router.get("/card_path", cardPath);
 router.get("/card_info/:type", cardInfo);
 router.get("/business-data", getBusinessData);
 router.get("/imageURL/:type", imageURL);
+router.get("/homeview-business", getHomeViewBusiness);
 router.post("/users", addUser);
 
 module.exports = router;
