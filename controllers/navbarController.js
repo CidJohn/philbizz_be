@@ -33,7 +33,7 @@ const getNavbar = async (req, res) => {
             children: [],
           };
           acc.push(parent);
-        }
+        } 
         if (childID) {
           parent.children.push({
             id: childID,

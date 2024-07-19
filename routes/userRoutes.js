@@ -16,6 +16,8 @@ const { getLanguage } = require("../controllers/translateController");
 const {
   getBusinessData,
   getHomeViewBusiness,
+  getCompanySettings,
+  getBusinessCategories,
 } = require("../controllers/businessController");
 const router = express.Router();
 
@@ -31,6 +33,8 @@ router.get("/card_info/:type", cardInfo);
 router.get("/business-data", getBusinessData);
 router.get("/imageURL/:type", imageURL);
 router.get("/homeview-business", getHomeViewBusiness);
+router.get("/business-settings", getCompanySettings);
+router.get("/business-category", getBusinessCategories);
 router.post("/users", addUser);
 
 module.exports = router;
