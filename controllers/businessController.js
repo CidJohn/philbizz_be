@@ -85,10 +85,48 @@ const getCompanySettings = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+const companyFilter = async (req, res) => {
+  const { name, title, description } = req.query;
+
+  let sql = `SELECT t3.id AS id, t1.name AS parentName, t2.id AS childID,
+    t2.name AS title, t2.description AS description, t2.image 
+    FROM tblcategory t1 
+    JOIN tblcompanysettings t2 ON t1.id = t2.parentID 
+    JOIN tblcompanycategory t3 ON t3.id = t1.parentID`;
+
+  const params = [];
+  const conditions = [];
+
+  if (name) {
+    conditions.push("t1.name = ?");
+    params.push(`${name}`);
+  }
+  if (title) {
+    conditions.push("t2.name LIKE ?");
+    params.push(`%${title}%`);
+  }
+  if (description) {
+    conditions.push("t2.description LIKE ?");
+    params.push(`%${description}%`);
+  }
+
+  if (conditions.length > 0) {
+    sql += " WHERE " + conditions.join(" AND ");
+  }
+
+  try {
+    const [result] = await db.query(sql, params);
+    res.json(result);
+  } catch (error) {
+    console.error("Database query error:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
 
 module.exports = {
   getBusinessData,
   getHomeViewBusiness,
   getBusinessCategories,
   getCompanySettings,
+  companyFilter,
 };
