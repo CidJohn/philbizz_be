@@ -18,6 +18,7 @@ const {
   getHomeViewBusiness,
   getCompanySettings,
   getBusinessCategories,
+  companyFilter
 } = require("../controllers/businessController");
 const router = express.Router();
 
@@ -35,6 +36,7 @@ router.get("/imageURL/:type", imageURL);
 router.get("/homeview-business", getHomeViewBusiness);
 router.get("/business-settings", getCompanySettings);
 router.get("/business-category", getBusinessCategories);
+router.get("/business-company-filter/", companyFilter)
 router.post("/users", addUser);
 
 module.exports = router;
