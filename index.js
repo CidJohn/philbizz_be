@@ -9,14 +9,26 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware for CORS
-app.use(
-  cors({
-    origin: "http://localhost:3001",
-    methods: "GET, POST, PUT, DELETE",
-    allowedHeaders: "Content-Type",
-  })
-);
 
+// CORS configuration
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests from localhost and the production domain
+    const allowedOrigins = [
+      "http://localhost:3000",
+      "https://philbizz.vercel.app",
+    ];
+    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  methods: "GET, POST, PUT, DELETE",
+  allowedHeaders: "Content-Type",
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Route handling
