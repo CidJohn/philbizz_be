@@ -1,5 +1,4 @@
 const express = require("express");
-const { getUsers, addUser } = require("../controllers/userController");
 const { getNavbar } = require("../controllers/navbarController");
 const {
   getTreeViewParent,
@@ -22,7 +21,6 @@ const {
 } = require("../controllers/businessController");
 const router = express.Router();
 
-router.get("/users", getUsers);
 router.get("/treeview/parent", getTreeViewParent);
 router.get("/treeview/child", getTreeViewChild);
 router.get("/navbarcontent", getNavbar);
@@ -37,6 +35,5 @@ router.get("/homeview-business", getHomeViewBusiness);
 router.get("/business-settings", getCompanySettings);
 router.get("/business-category", getBusinessCategories);
 router.get("/business-company-filter", companyFilter);
-router.post("/users", addUser);
 
 module.exports = router;
