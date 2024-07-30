@@ -9,6 +9,7 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware for CORS
+
 // CORS configuration
 const corsOptions = {
   origin: (origin, callback) => {
@@ -27,9 +28,7 @@ const corsOptions = {
   allowedHeaders: "Content-Type",
 };
 
-// Middleware for CORS
 app.use(cors(corsOptions));
-
 app.use(express.json());
 
 // Route handling
