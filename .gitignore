@@ -1,5 +1,5 @@
 # .gitignore
-
+generateSecreteKey.js
 # Ignore environment files
 .env
-generateSecreteKey.js
+
