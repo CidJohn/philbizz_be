@@ -32,7 +32,7 @@ app.use(cors(corsOptions));
 app.use(express.json());
 
 // Route handling
-app.use("/api", contentRoutes);
+app.use("/api/content", contentRoutes);
 app.use("/api/auth", authRoutes);
 
 // Error handler should be the last middleware
