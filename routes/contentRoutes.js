@@ -19,6 +19,7 @@ const {
   getBusinessCategories,
   companyFilter,
 } = require("../controllers/businessController");
+const { BlogSettings, BlogContent } = require("../controllers/blogController");
 const router = express.Router();
 
 router.get("/treeview/parent", getTreeViewParent);
@@ -35,5 +36,7 @@ router.get("/homeview-business", getHomeViewBusiness);
 router.get("/business-settings", getCompanySettings);
 router.get("/business-category", getBusinessCategories);
 router.get("/business-company-filter", companyFilter);
+router.get("/blog-settings", BlogSettings);
+router.get("/blog-content", BlogContent);
 
 module.exports = router;

@@ -50,7 +50,18 @@ const login = async (req, res) => {
   }
 };
 
+const user = async (req, res) => {
+  try {
+    const token = req.headers.authorization;
+    const decoded = jwt.verify(token, process.env.SECRET_KEY);
+    res.json(decoded);
+  } catch (error) {
+    res.status(401).json({ error: "Unauthorized" });
+  }
+};
+
 module.exports = {
   register,
   login,
+  user,
 };
