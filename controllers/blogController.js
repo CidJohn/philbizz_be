@@ -14,7 +14,7 @@ const BlogSettings = async (req, res) => {
 };
 
 const BlogContent = async (req, res) => {
-  const { id } = req.params;
+  const { id } = req.query;
   let sql = `SELECT t1.username, t2.title, t2.description, t3.image, t3.description AS contentDESC
                  FROM tblusers t1
                  JOIN tblblog_settings t2 ON t1.id = t2.user_id

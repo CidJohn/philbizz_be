@@ -18,6 +18,7 @@ const {
   getCompanySettings,
   getBusinessCategories,
   companyFilter,
+  getbusinessCompanyView,
 } = require("../controllers/businessController");
 const { BlogSettings, BlogContent } = require("../controllers/blogController");
 const router = express.Router();
@@ -36,6 +37,7 @@ router.get("/homeview-business", getHomeViewBusiness);
 router.get("/business-settings", getCompanySettings);
 router.get("/business-category", getBusinessCategories);
 router.get("/business-company-filter", companyFilter);
+router.get("/business-company-viewpage", getbusinessCompanyView);
 router.get("/blog-settings", BlogSettings);
 router.get("/blog-content", BlogContent);
 
