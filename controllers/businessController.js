@@ -123,10 +123,106 @@ const companyFilter = async (req, res) => {
   }
 };
 
+const getbusinessCompanyView = async (req, res) => {
+  const { company } = req.query;
+  let sql = `
+    SELECT 
+      t1.name AS companyName, 
+      t1.image AS imgLOGO,
+      t2.desc AS description, 
+      t2.contact AS contact, 
+      t2.email AS email, 
+      t2.address, 
+      t2.locationURL,
+      t3.imageURL AS companyImage, 
+      t3.desc AS imgDesc, 
+      t4.name AS productName, 
+      t4.imageURL as productImage, 
+      t4.desc AS productDesc
+    FROM 
+      tblcompanysettings t1 
+    JOIN 
+      tblcompany_viewpage t2 ON t1.id = t2.companyID
+    JOIN 
+      tblcompany_image t3 ON t2.id = t3.imageID
+    JOIN 
+      tblcompany_product t4 ON t2.id = t4.productID
+   
+  `;
+  const params = [];
+  if (company) {
+    sql += ` WHERE t1.name = ?`;
+    params.push(company);
+  }
+
+  try {
+    const [rows] = await db.query(sql, params);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "Company not found" });
+    }
+
+    // Extract unique company details
+    const companyData = {
+      companyName: rows[0].companyName,
+      imgLOGO: rows[0].imgLOGO,
+      description: rows[0].description,
+      contact: rows[0].contact,
+      email: rows[0].email,
+      address: rows[0].address,
+      locationURL: rows[0].locationURL,
+    };
+
+    // Extract unique images and products
+    const images = [];
+    const products = [];
+
+    rows.forEach((row) => {
+      if (
+        !images.some(
+          (image) =>
+            image.companyImage === row.companyImage &&
+            image.imgDesc === row.imgDesc
+        )
+      ) {
+        images.push({ companyImage: row.companyImage, imgDesc: row.imgDesc });
+      }
+
+      if (
+        !products.some(
+          (product) =>
+            product.productName === row.productName &&
+            product.productImage === row.productImage &&
+            product.productDesc === row.productDesc
+        )
+      ) {
+        products.push({
+          productName: row.productName,
+          productImage: row.productImage,
+          productDesc: row.productDesc,
+        });
+      }
+    });
+
+    // Combine company data with images and products
+    const formattedData = {
+      ...companyData,
+      images,
+      products,
+    };
+
+    res.json(formattedData);
+  } catch (error) {
+    console.error("Database query error:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
   getBusinessData,
   getHomeViewBusiness,
   getBusinessCategories,
   getCompanySettings,
   companyFilter,
+  getbusinessCompanyView,
 };
