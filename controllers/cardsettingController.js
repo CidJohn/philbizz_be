@@ -88,7 +88,7 @@ const imageURL = async (req, res) => {
   const header = req.params.type;
   const sql = `SELECT t1.id AS ParentID, t2.imageURL FROM tblcard_info t1
                 LEFT JOIN tblcard_image t2
-                ON t1.imageID = t2.imageID
+                ON t1.id = t2.imageID
                 WHERE t1.name = ?`;
   try {
     const [results] = await db.query(sql, [header]);
