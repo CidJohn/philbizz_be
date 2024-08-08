@@ -68,7 +68,7 @@ const getBusinessCategories = async (req, res) => {
 
 const getCompanySettings = async (req, res) => {
   const sql = `
-    SELECT t3.id AS id, t1.name AS parentName, t2.id AS childID,
+    SELECT  t1.name AS parentName,
     t2.name AS title, t2.description AS description, t2.image 
     FROM tblcategory t1 JOIN  tblcompanysettings t2 ON
     t1.id = t2.parentID JOIN  tblcompanycategory t3 ON
@@ -88,7 +88,7 @@ const getCompanySettings = async (req, res) => {
 const companyFilter = async (req, res) => {
   const { name, title, description } = req.query;
 
-  let sql = `SELECT t3.id AS id, t1.name AS parentName, t2.id AS childID,
+  let sql = `SELECT  t1.name AS parentName, 
     t2.name AS title, t2.description AS description, t2.image 
     FROM tblcategory t1 
     JOIN tblcompanysettings t2 ON t1.id = t2.parentID 
@@ -132,13 +132,23 @@ const getbusinessCompanyView = async (req, res) => {
       t2.desc AS description, 
       t2.contact AS contact, 
       t2.email AS email, 
-      t2.address, 
+      t2.address AS address, 
+      t2.person AS person,
+      t2.establish AS establish,
+      t2.employee AS employee,
+      t2.business AS business,
       t2.locationURL,
       t3.imageURL AS companyImage, 
       t3.desc AS imgDesc, 
       t4.name AS productName, 
       t4.imageURL as productImage, 
-      t4.desc AS productDesc
+      t4.desc AS productDesc,
+       t5.Facebook AS facebook,
+        t5.Instragram AS instagram,
+        t5.x AS x,
+        t5.Gmail AS Gmail,
+        t5.website AS website,
+        t5.linkin AS linkin
     FROM 
       tblcompanysettings t1 
     JOIN 
@@ -147,7 +157,8 @@ const getbusinessCompanyView = async (req, res) => {
       tblcompany_image t3 ON t2.id = t3.imageID
     JOIN 
       tblcompany_product t4 ON t2.id = t4.productID
-   
+    JOIN 
+      tblcompany_social t5 ON t2.id = t5.socialID
   `;
   const params = [];
   if (company) {
@@ -170,12 +181,17 @@ const getbusinessCompanyView = async (req, res) => {
       contact: rows[0].contact,
       email: rows[0].email,
       address: rows[0].address,
+      person: rows[0].person,
+      establish: rows[0].establish,
+      employee: rows[0].employee,
+      business: rows[0].business,
       locationURL: rows[0].locationURL,
     };
 
     // Extract unique images and products
     const images = [];
     const products = [];
+    const socials = [];
 
     rows.forEach((row) => {
       if (
@@ -202,6 +218,24 @@ const getbusinessCompanyView = async (req, res) => {
           productDesc: row.productDesc,
         });
       }
+      if (
+        !socials.some(
+          (social) =>
+            social.facebook === row.facebook &&
+            social.instagram === row.instagram &&
+            social.x === row.x &&
+            social.website === row.website &&
+            social.linkin === row.linkin
+        )
+      ) {
+        socials.push({
+          facebook: row.facebook,
+          instagram: row.instagram,
+          x: row.x,
+          website: row.website,
+          linkin: row.linkin,
+        });
+      }
     });
 
     // Combine company data with images and products
@@ -209,6 +243,7 @@ const getbusinessCompanyView = async (req, res) => {
       ...companyData,
       images,
       products,
+      socials,
     };
 
     res.json(formattedData);
