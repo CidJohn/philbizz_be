@@ -8,11 +8,9 @@ require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware for CORS
 // CORS configuration
 const corsOptions = {
   origin: (origin, callback) => {
-    // Allow requests from localhost and the production domain
     const allowedOrigins = [
       "http://localhost:3000",
       "https://philbizz.vercel.app",
@@ -30,8 +28,10 @@ const corsOptions = {
 // Middleware for CORS
 app.use(cors(corsOptions));
 
-app.use(express.json());
-
+// Middleware for parsing JSON bodies with a size limit of 50MB
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
+app.use(express.static("public"));
 // Route handling
 app.use("/api/content", contentRoutes);
 app.use("/api/auth", authRoutes);
