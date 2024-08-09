@@ -8,6 +8,7 @@ require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+
 // CORS configuration
 const corsOptions = {
   origin: (origin, callback) => {
@@ -25,13 +26,17 @@ const corsOptions = {
   allowedHeaders: ["Content-Type", "Authorization"],
 };
 
-// Middleware for CORS
 app.use(cors(corsOptions));
+
 
 // Middleware for parsing JSON bodies with a size limit of 50MB
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 app.use(express.static("public"));
+
+app.use(express.json());
+
+
 // Route handling
 app.use("/api/content", contentRoutes);
 app.use("/api/auth", authRoutes);
