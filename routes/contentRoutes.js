@@ -25,6 +25,8 @@ const {
   BlogContent,
   BlogPostTitle,
   BlogPostContent,
+  BlogCommentPost,
+  BlogComment,
 } = require("../controllers/blogController");
 const router = express.Router();
 
@@ -45,8 +47,10 @@ router.get("/business-company-filter", companyFilter);
 router.get("/business-company-viewpage", getbusinessCompanyView);
 router.get("/blog-settings", BlogSettings);
 router.get("/blog-content", BlogContent);
+router.get("/comment-section", BlogComment);
 
 router.post("/blog-post-title", BlogPostTitle);
 router.post("/blog-post-content", BlogPostContent);
+router.post("/blog-post-comment", BlogCommentPost);
 
 module.exports = router;

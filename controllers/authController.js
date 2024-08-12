@@ -34,6 +34,7 @@ const login = async (req, res) => {
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (isPasswordValid) {
       const payload = {
+        id: user.id,
         username: user.username,
         email: user.email,
         number: user.number,
@@ -54,7 +55,15 @@ const user = async (req, res) => {
   try {
     const token = req.headers.authorization;
     const decoded = jwt.verify(token, process.env.SECRET_KEY);
-    res.json(decoded);
+    const id = decoded.id;
+    const useridEcrypt = jwt.sign({ id }, process.env.SECRET_KEY, {
+      expiresIn: "1h",
+    });
+    const result = {
+      ...decoded,
+      id: useridEcrypt,
+    };
+    res.json(result);
   } catch (error) {
     res.status(401).json({ error: "Unauthorized" });
   }
