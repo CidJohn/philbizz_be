@@ -203,12 +203,13 @@ const BlogComment = async (req, res) => {
 
 const BlogCommentPost = async (req, res) => {
   const { userid, commentID, comment } = req.body;
+  console.log(req.body)
   let sql = `INSERT INTO tblblog_comment (userID,commentID,comment) VALUES (? , ? , ?)`;
 
   try {
     const decryptedUserId = jwt.verify(userid, process.env.SECRET_KEY);
     const decryptedCommentId = jwt.verify(commentID, process.env.SECRET_KEY);
-    console.log(decryptedUserId.userid)
+    console.log(decryptedUserId)
     await db.query(sql, [
       decryptedUserId.userid,
       decryptedCommentId.commentID,
