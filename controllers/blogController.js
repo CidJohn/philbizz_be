@@ -211,7 +211,7 @@ const BlogCommentPost = async (req, res) => {
     const decryptedCommentId = jwt.verify(commentID, process.env.SECRET_KEY);
     console.log(decryptedUserId)
     await db.query(sql, [
-      decryptedUserId.userid,
+      decryptedUserId.id,
       decryptedCommentId.commentID,
       comment,
     ]);
