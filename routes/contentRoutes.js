@@ -27,6 +27,7 @@ const {
   BlogPostContent,
   BlogCommentPost,
   BlogComment,
+  BlogLiked,
 } = require("../controllers/blogController");
 const router = express.Router();
 
@@ -52,5 +53,6 @@ router.get("/comment-section", BlogComment);
 router.post("/blog-post-title", BlogPostTitle);
 router.post("/blog-post-content", BlogPostContent);
 router.post("/blog-post-comment", BlogCommentPost);
+router.post("/posts/like", BlogLiked);
 
 module.exports = router;
