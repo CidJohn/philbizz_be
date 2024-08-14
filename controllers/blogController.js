@@ -25,12 +25,25 @@ const upload = multer({
 // Handle fetching blog settings
 const BlogSettings = async (req, res) => {
   const sql = `
-    SELECT t1.id AS userid,t1.username,t2.id AS commentID, t2.title, t2.description, t2.created_at, t2.image, t2.imageURL
+    SELECT 
+      t1.id AS userid,
+      t1.username,
+      t2.id AS commentID, 
+      t2.title, 
+      t2.description, 
+      t2.created_at, 
+      t2.image, 
+      t2.imageURL,
+      t2.like_counter,
+      IF(t3.userid IS NOT NULL AND t3.postid IS NOT NULL, TRUE, FALSE) AS likes
     FROM tblusers t1
     JOIN tblblog_settings t2 ON t1.id = t2.user_id
+    LEFT JOIN tblblog_liked t3 ON t1.id = t3.userid AND t2.id = t3.postid
   `;
+
   try {
     const [result] = await db.query(sql);
+
     // Encrypt the id for each result using jwt
     const encryptedResults = result.map((result) => {
       const commentToken = jwt.sign(
@@ -131,7 +144,7 @@ const BlogPostTitle = async (req, res) => {
     const { userid, title, desc } = req.body;
     const image = req.file ? req.file.filename : null;
     const insertBlogSql =
-      "INSERT INTO tblblog_settings (user_id, title, imageURL, description) VALUES (?, ?, ?, ?)";
+      "INSERT INTO tblblog_settings (user_id, title, imageURL, description, like_counter) VALUES (?, ?, ?, ?, 0)";
 
     try {
       // Get the user ID
@@ -203,13 +216,11 @@ const BlogComment = async (req, res) => {
 
 const BlogCommentPost = async (req, res) => {
   const { userid, commentID, comment } = req.body;
-  console.log(req.body)
   let sql = `INSERT INTO tblblog_comment (userID,commentID,comment) VALUES (? , ? , ?)`;
 
   try {
     const decryptedUserId = jwt.verify(userid, process.env.SECRET_KEY);
     const decryptedCommentId = jwt.verify(commentID, process.env.SECRET_KEY);
-    console.log(decryptedUserId)
     await db.query(sql, [
       decryptedUserId.id,
       decryptedCommentId.commentID,
@@ -221,7 +232,44 @@ const BlogCommentPost = async (req, res) => {
   }
 };
 
-// Export the routes and upload middleware
+const BlogLiked = async (req, res) => {
+  const { postid, userid } = req.body;
+  let decryptedUserId, decryptedPostId;
+
+  try {
+    decryptedUserId = jwt.verify(userid, process.env.SECRET_KEY).id;
+    decryptedPostId = jwt.verify(postid, process.env.SECRET_KEY).commentID;
+  } catch (error) {
+    console.error("JWT verification failed:", error.message);
+    return res.status(401).json({ error: "Invalid token" });
+  }
+
+  let selectlike = `SELECT * FROM tblblog_liked WHERE postid = ? AND userID = ?`;
+  let deletelike = `DELETE FROM tblblog_liked WHERE postid = ? AND userID = ?`;
+  let updatelike = `UPDATE tblblog_settings SET like_counter = like_counter - 1 WHERE id = ?`;
+  let insertlike = `INSERT INTO tblblog_liked (postid, userID) VALUES (?, ?)`;
+  let secupdatelike = `UPDATE tblblog_settings SET like_counter = like_counter + 1 WHERE id = ?`;
+
+  try {
+    const [resultSelect] = await db.query(selectlike, [
+      decryptedPostId,
+      decryptedUserId,
+    ]);
+    if (resultSelect.length > 0) {
+      await db.query(deletelike, [decryptedPostId, decryptedUserId]);
+      await db.query(updatelike, [decryptedPostId]);
+      return res.json({ liked: false, message: "Post unliked successfully" });
+    } else {
+      await db.query(insertlike, [decryptedPostId, decryptedUserId]);
+      await db.query(secupdatelike, [decryptedPostId]);
+      return res.json({ liked: true, message: "Post liked successfully" });
+    }
+  } catch (error) {
+    console.error("Error in liking/unliking post:", error.message);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
 module.exports = {
   BlogSettings,
   BlogContent,
@@ -229,5 +277,6 @@ module.exports = {
   BlogPostTitle,
   BlogPostContent,
   BlogCommentPost,
+  BlogLiked,
   upload,
 };
