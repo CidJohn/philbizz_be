@@ -35,7 +35,7 @@ const BlogSettings = async (req, res) => {
       t2.image, 
       t2.imageURL,
       t2.like_counter,
-      IF(t3.userid IS NOT NULL AND t3.postid IS NOT NULL, TRUE, FALSE) AS likes
+      IF(t3.userid = t1.id AND t3.userid IS NOT NULL AND t3.postid IS NOT NULL, TRUE, FALSE) AS likes
     FROM tblusers t1
     JOIN tblblog_settings t2 ON t1.id = t2.user_id
     LEFT JOIN tblblog_liked t3 ON t1.id = t3.userid AND t2.id = t3.postid
@@ -244,28 +244,61 @@ const BlogLiked = async (req, res) => {
     return res.status(401).json({ error: "Invalid token" });
   }
 
-  let selectlike = `SELECT * FROM tblblog_liked WHERE postid = ? AND userID = ?`;
-  let deletelike = `DELETE FROM tblblog_liked WHERE postid = ? AND userID = ?`;
-  let updatelike = `UPDATE tblblog_settings SET like_counter = like_counter - 1 WHERE id = ?`;
-  let insertlike = `INSERT INTO tblblog_liked (postid, userID) VALUES (?, ?)`;
-  let secupdatelike = `UPDATE tblblog_settings SET like_counter = like_counter + 1 WHERE id = ?`;
+  const selectLikeQuery = `SELECT * FROM tblblog_liked WHERE postid = ? AND userID = ?`;
+  const deleteLikeQuery = `DELETE FROM tblblog_liked WHERE postid = ? AND userID = ?`;
+  const decrementLikeQuery = `UPDATE tblblog_settings SET like_counter = like_counter - 1 WHERE id = ?`;
+  const insertLikeQuery = `INSERT INTO tblblog_liked (postid, userID) VALUES (?, ?)`;
+  const incrementLikeQuery = `UPDATE tblblog_settings SET like_counter = like_counter + 1 WHERE id = ?`;
 
   try {
-    const [resultSelect] = await db.query(selectlike, [
+    const [resultSelect] = await db.query(selectLikeQuery, [
       decryptedPostId,
       decryptedUserId,
     ]);
+
     if (resultSelect.length > 0) {
-      await db.query(deletelike, [decryptedPostId, decryptedUserId]);
-      await db.query(updatelike, [decryptedPostId]);
+      await db.query(deleteLikeQuery, [decryptedPostId, decryptedUserId]);
+      await db.query(decrementLikeQuery, [decryptedPostId]);
       return res.json({ liked: false, message: "Post unliked successfully" });
     } else {
-      await db.query(insertlike, [decryptedPostId, decryptedUserId]);
-      await db.query(secupdatelike, [decryptedPostId]);
+      await db.query(insertLikeQuery, [decryptedPostId, decryptedUserId]);
+      await db.query(incrementLikeQuery, [decryptedPostId]);
       return res.json({ liked: true, message: "Post liked successfully" });
     }
   } catch (error) {
     console.error("Error in liking/unliking post:", error.message);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+const GetBlogLikedStatus = async (req, res) => {
+  const { postid, userid } = req.body;
+  let decryptedUserId, decryptedPostId;
+
+  try {
+    if (!postid || !userid) return;
+    decryptedUserId = jwt.verify(userid, process.env.SECRET_KEY).id;
+    decryptedPostId = jwt.verify(postid, process.env.SECRET_KEY).commentID;
+  } catch (error) {
+    console.error("JWT verification failed:", error.message);
+    return res.status(401).json({ error: "Invalid token" });
+  }
+
+  const selectLikeQuery = `SELECT * FROM tblblog_liked WHERE postid = ? AND userID = ?`;
+
+  try {
+    const [resultSelect] = await db.query(selectLikeQuery, [
+      decryptedPostId,
+      decryptedUserId,
+    ]);
+
+    if (resultSelect.length > 0) {
+      return res.json({ liked: true });
+    } else {
+      return res.json({ liked: false });
+    }
+  } catch (error) {
+    console.error("Error fetching like status:", error.message);
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
@@ -278,5 +311,6 @@ module.exports = {
   BlogPostContent,
   BlogCommentPost,
   BlogLiked,
+  GetBlogLikedStatus,
   upload,
 };

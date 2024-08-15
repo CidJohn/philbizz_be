@@ -28,6 +28,7 @@ const {
   BlogCommentPost,
   BlogComment,
   BlogLiked,
+  GetBlogLikedStatus,
 } = require("../controllers/blogController");
 const router = express.Router();
 
@@ -54,5 +55,6 @@ router.post("/blog-post-title", BlogPostTitle);
 router.post("/blog-post-content", BlogPostContent);
 router.post("/blog-post-comment", BlogCommentPost);
 router.post("/posts/like", BlogLiked);
+router.post("/posts/like-status", GetBlogLikedStatus);
 
 module.exports = router;
