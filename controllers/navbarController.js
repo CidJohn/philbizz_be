@@ -1,7 +1,7 @@
 const db = require("../db_conn/db");
 
 const getNavbar = async (req, res) => {
-  const sql = `SELECT t1.id AS parentID, t1.name AS parentName, t1.path AS parentPath, t1.businessPath AS businessPath, 
+  const sql = `SELECT t1.id AS parentID, t1.name AS parentName,t1.iconpath AS iconPath, t1.path AS parentPath, t1.businessPath AS businessPath, 
                t2.id AS childID, t2.name AS childName, t2.path AS childPath
                FROM tblnavbarcontent t1
                LEFT JOIN tblnavbarchild t2 ON t1.id = t2.parentID`;
@@ -17,6 +17,7 @@ const getNavbar = async (req, res) => {
           parentID,
           parentName,
           parentPath,
+          iconPath,
           businessPath,
           childID,
           childName,
@@ -30,10 +31,11 @@ const getNavbar = async (req, res) => {
             name: parentName,
             path: parentPath,
             businessPath: businessPath,
+            iconPath: iconPath,
             children: [],
           };
           acc.push(parent);
-        } 
+        }
         if (childID) {
           parent.children.push({
             id: childID,
