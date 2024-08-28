@@ -4,12 +4,18 @@ const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
 const register = async (req, res) => {
-  const { username, email, number, password } = req.body;
+  const { username, email, number, password, usertype } = req.body;
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
     const query =
-      "INSERT INTO tblusers (username, email, number, password) VALUES (?, ?, ?, ?)";
-    await connection.query(query, [username, email, number, hashedPassword]);
+      "INSERT INTO tblusers (username, email, number, password, usertype) VALUES (?, ?, ?, ?,?)";
+    await connection.query(query, [
+      username,
+      email,
+      number,
+      hashedPassword,
+      usertype,
+    ]);
     res.status(201).send("User registered successfully");
   } catch (error) {
     res.status(400).send(error.message);
@@ -38,6 +44,7 @@ const login = async (req, res) => {
         username: user.username,
         email: user.email,
         number: user.number,
+        type: user.usertype,
       };
       const options = { expiresIn: "1h", algorithm: "HS256" };
       const token = jwt.sign(payload, process.env.SECRET_KEY, options);
