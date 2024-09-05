@@ -3,6 +3,8 @@ const { getNavbar } = require("../controllers/navbarController");
 const {
   getTreeViewParent,
   getTreeViewChild,
+  postParentTreeView,
+  postChildTreeView,
 } = require("../controllers/treeviewController");
 const {
   cardSettings,
@@ -56,5 +58,7 @@ router.post("/blog-post-content", BlogPostContent);
 router.post("/blog-post-comment", BlogCommentPost);
 router.post("/posts/like", BlogLiked);
 router.post("/posts/like-status", GetBlogLikedStatus);
+router.post("/treeview/parent", postParentTreeView);
+router.post("/treeview/children", postChildTreeView);
 
 module.exports = router;

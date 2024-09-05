@@ -27,7 +27,17 @@ const getTreeViewChild = async (req, res) => {
     const formattedData = results.reduce(
       (
         acc,
-        { parentID, parentName, parentPath, childID, childName, childPath, grandchildID, grandchildName, grandchildPath }
+        {
+          parentID,
+          parentName,
+          parentPath,
+          childID,
+          childName,
+          childPath,
+          grandchildID,
+          grandchildName,
+          grandchildPath,
+        }
       ) => {
         let parent = acc.find((item) => item.parentID === parentID);
         if (!parent) {
@@ -75,4 +85,41 @@ const getTreeViewChild = async (req, res) => {
   }
 };
 
-module.exports = { getTreeViewParent, getTreeViewChild };
+const postParentTreeView = async (req, res) => {
+  const { name, path } = req.body;
+  let sql = `INSERT INTO tbltreeviewparent (name, path, type) VALUES (?, ?, 5)`;
+
+  try {
+    await db.query(sql, [name, path]);
+    res.status(201).send("Parent Treeview Created");
+  } catch (error) {
+    res.status(400).send(error.message);
+  }
+};
+
+const postChildTreeView = async (req, res) => {
+  const { name, path, parent } = req.body;
+  let sql = "SELECT id FROM tbltreeviewparent WHERE name = ? AND path = ?";
+  let sec_sql =
+    "INSERT INTO tbltreeviewchildmenu(name, path, parentID) VALUES (?, ?, ?)";
+  try {
+    const [result] = await db.query(sql, [parent, path]);
+    if (result.length === 0) {
+      return res.status(404).send("Parent Name not found");
+    }
+    const parentID = result[0].id;
+
+    await db.query(sec_sql, [name, path, parentID]);
+    res.status(201).send("Child Treeview Created!");
+  } catch (error) {
+    console.error("Error inserting child treeview content:", error);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
+module.exports = {
+  getTreeViewParent,
+  getTreeViewChild,
+  postParentTreeView,
+  postChildTreeView,
+};
