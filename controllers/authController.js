@@ -50,7 +50,7 @@ const login = async (req, res) => {
       const token = jwt.sign(payload, process.env.SECRET_KEY, options);
       res.json({ token });
     } else {
-      res.status(400).send("Incorrect password");
+      res.status(400).send("Incorrect password"); 
     }
   } catch (error) {
     console.error("Error during login process:", error);
