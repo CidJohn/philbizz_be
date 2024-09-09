@@ -117,9 +117,55 @@ const postChildTreeView = async (req, res) => {
   }
 };
 
+const putTreeView = async (req, res) => {
+  const { parent } = req.body;
+  const { path, ...locations } = parent; // Extract the path and the remaining locations
+
+  let allIds = [];
+  try {
+    for (const [key, value] of Object.entries(locations)) {
+      console.log(`Key: ${key}, Name: ${value}, Path: ${path}`);
+
+      // Query for the ID using the name (value) and path
+      let sql_1 = `SELECT id FROM tbltreeviewparent WHERE name = ? AND path = ?`;
+      console.log(`Querying for: ${value}, Path: ${path}`);
+
+      const [results] = await db.query(sql_1, [key, path]);
+      const ids = results.map((row) => row.id);
+      allIds = [...allIds, ...ids]; // Add to the allIds array
+    }
+
+    if (allIds.length > 0) {
+      console.log("Collected IDs:", allIds);
+      let index = 0;
+
+      // Update each record with its respective value (location name)
+      for (const id of allIds) {
+        const nameToUpdate = Object.values(locations)[index];
+        let sql_2 = `UPDATE tbltreeviewparent SET name = ? WHERE id = ?`;
+
+        console.log(`Updating ID: ${id} with Name: ${nameToUpdate}`);
+        await db.query(sql_2, [nameToUpdate, id]); // Await the update query
+
+        index++; // Move to the next item
+      }
+    } else {
+      console.log("No matching records found");
+    }
+
+    res
+      .status(200)
+      .json({ message: "Query executed successfully", ids: allIds });
+  } catch (error) {
+    console.error("Error executing query:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 module.exports = {
   getTreeViewParent,
   getTreeViewChild,
   postParentTreeView,
   postChildTreeView,
+  putTreeView,
 };
