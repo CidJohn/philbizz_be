@@ -5,6 +5,7 @@ const {
   getTreeViewChild,
   postParentTreeView,
   postChildTreeView,
+  putTreeView,
 } = require("../controllers/treeviewController");
 const {
   cardSettings,
@@ -60,5 +61,7 @@ router.post("/posts/like", BlogLiked);
 router.post("/posts/like-status", GetBlogLikedStatus);
 router.post("/treeview/parent", postParentTreeView);
 router.post("/treeview/children", postChildTreeView);
+
+router.put("/treeview/put/data", putTreeView)
 
 module.exports = router;

@@ -253,6 +253,8 @@ const getbusinessCompanyView = async (req, res) => {
   }
 };
 
+
+
 module.exports = {
   getBusinessData,
   getHomeViewBusiness,
