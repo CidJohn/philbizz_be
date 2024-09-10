@@ -253,7 +253,120 @@ const getbusinessCompanyView = async (req, res) => {
   }
 };
 
+const postCategory = async (req, res) => {
+  const { parent, path, child } = req.body;
+  let _sql = `SELECT name FROM tblcompanycategory`;
+  let sql = `INSERT INTO tblcompanycategory(name, path) VALUES(?,?)`;
+  let sql_1 = `SELECT id FROM tblcompanycategory WHERE name = ? AND path = ?`;
+  let sql_2 = `INSERT INTO tblcategory(parentID,name,path) VALUES (?, ?, ?)`;
+  try {
+    const [parentResult] = await db.query(_sql);
 
+    const isParentExists = parentResult.some(
+      (item) => item.name.trim().toLowerCase() === parent.trim().toLowerCase()
+    );
+
+    if (isParentExists) {
+      return res.status(400).send("The Parent Name already exists!");
+    }
+    await db.query(sql, [parent, path]);
+
+    const [result] = await db.query(sql_1, [parent, path]);
+
+    if (result.length === 0) {
+      return res.status(404).send("The parent is not Created!");
+    }
+    const parentID = result[0].id;
+
+    for (const { child: childname, path: childPath } of child) {
+      if (childname && childname.trim() !== "") {
+        await db.query(sql_2, [parentID, childname, childPath]);
+      }
+    }
+
+    // Success response after all children are inserted
+    res.status(201).send("Categories successfully created!");
+  } catch (error) {
+    // Error handling
+    res.status(400).send(`Error: ${error.message}`);
+  }
+};
+
+const putCategoryHeader = async (req, res) => {
+  const { header, path } = req.body;
+  let _sql = `SELECT id FROM tblcompanycategory WHERE name = ? AND path = ?`;
+  let sql = `UPDATE tblcompanycategory SET name = ? WHERE id = ?`;
+
+  try {
+    for (const [oldName, newName] of Object.entries(header)) {
+      const [parentName] = await db.query(_sql, [oldName, path]);
+
+      if (parentName.length > 0) {
+        const parentID = parentName[0].id;
+
+        await db.query(sql, [newName, parentID]);
+      } else {
+        return res
+          .status(404)
+          .send(`Category ${oldName} not found for path ${path}`);
+      }
+    }
+
+    res.status(200).send("Category headers updated successfully!");
+  } catch (error) {
+    res.status(500).send(`Error updating categories: ${error.message}`);
+  }
+};
+
+const putCategoryChild = async (req, res) => {
+  const { child } = req.body;
+  let _sql = `UPDATE tblcategory SET name = ? WHERE id = ?`;
+
+  try {
+    // Loop through the child object and update the corresponding rows
+    for (const key in child) {
+      if (child.hasOwnProperty(key)) {
+        const { id, name } = child[key];
+        // Only update if the name exists and is not empty
+        if (name && name.trim() !== "") {
+          await db.query(_sql, [name, id]);
+        }
+      }
+    }
+    res.status(200).send("Category children updated successfully!");
+  } catch (error) {
+    res.status(500).send(`Error updating children: ${error.message}`);
+  }
+};
+
+const postCategoryChildUpdate = async (req, res) => {
+  const { addNew, path } = req.body;
+  let _sql = `SELECT id FROM tblcompanycategory WHERE name = ? and path = ?`;
+  let sql = `INSERT INTO tblcategory(parentID,name,path) VALUES (?,?,?)`;
+
+  try {
+    for (const [header, categories] of Object.entries(addNew)) {
+      const [result] = await db.query(_sql, [header, path]);
+      if (result.length === 0) {
+        return res
+          .status(404)
+          .send(`Parent category "${header}" not found for path "${path}".`);
+      }
+
+      const parentID = result[0].id;
+
+      for (const { id, value } of categories) {
+        if (value && value.trim() !== "") {
+          await db.query(sql, [parentID, value, path]);
+        }
+      }
+    }
+
+    res.status(201).send("Categories added successfully!");
+  } catch (error) {
+    res.status(500).send(`Error adding categories: ${error.message}`);
+  }
+};
 
 module.exports = {
   getBusinessData,
@@ -262,4 +375,8 @@ module.exports = {
   getCompanySettings,
   companyFilter,
   getbusinessCompanyView,
+  postCategory,
+  putCategoryHeader,
+  putCategoryChild,
+  postCategoryChildUpdate
 };

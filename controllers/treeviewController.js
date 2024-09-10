@@ -85,50 +85,84 @@ const getTreeViewChild = async (req, res) => {
   }
 };
 
-const postParentTreeView = async (req, res) => {
-  const { name, path } = req.body;
+const postTreeView = async (req, res) => {
+  const { parent, child, path } = req.body;
+  let _sql = `SELECT name, path FROM tbltreeviewparent WHERE path = ?`;
   let sql = `INSERT INTO tbltreeviewparent (name, path, type) VALUES (?, ?, 5)`;
-
-  try {
-    await db.query(sql, [name, path]);
-    res.status(201).send("Parent Treeview Created");
-  } catch (error) {
-    res.status(400).send(error.message);
-  }
-};
-
-const postChildTreeView = async (req, res) => {
-  const { name, path, parent } = req.body;
-  let sql = "SELECT id FROM tbltreeviewparent WHERE name = ? AND path = ?";
-  let sec_sql =
+  let sql_2 = "SELECT id FROM tbltreeviewparent WHERE name = ? AND path = ?";
+  let sql_3 =
     "INSERT INTO tbltreeviewchildmenu(name, path, parentID) VALUES (?, ?, ?)";
   try {
-    const [result] = await db.query(sql, [parent, path]);
+    const [parentValidation] = await db.query(_sql, [path]);
+
+    const isParentValidated = parentValidation.some(
+      (item) => item.name.trim().toLowerCase() === parent.trim().toLowerCase()
+    );
+
+    if (isParentValidated) {
+      return res.status(400).send("The Parent Name already exists!");
+    }
+
+    await db.query(sql, [parent, path]);
+
+    const [result] = await db.query(sql_2, [parent, path]);
+
     if (result.length === 0) {
       return res.status(404).send("Parent Name not found");
     }
     const parentID = result[0].id;
 
-    await db.query(sec_sql, [name, path, parentID]);
-    res.status(201).send("Child Treeview Created!");
+    for (const { child: childname, path: childPath } of child) {
+      if (childname && childname.trim() !== "") {
+        await db.query(sql_3, [childname, childPath, parentID]);
+      }
+    }
+
+    res.status(201).send("Parent and Child Treeview Created!");
   } catch (error) {
-    console.error("Error inserting child treeview content:", error);
-    res.status(500).send("Internal Server Error");
+    res.status(400).send(error.message);
+  }
+};
+
+const postChildTreeViewUpdate = async (req, res) => {
+  const { path, addNew } = req.body;
+  let sql_parent = `SELECT id FROM tbltreeviewparent WHERE name = ? AND path = ?`;
+  let sql_insert_child = `INSERT INTO tbltreeviewchildmenu (name, path, parentID) VALUES (?, ?, ?)`;
+
+  try {
+    for (const parent in addNew) {
+      const children = addNew[parent];
+      const [parentResult] = await db.query(sql_parent, [parent, path]);
+
+      if (parentResult.length === 0) {
+        return res
+          .status(404)
+          .send(`Parent "${parent}" not found for the path "${path}"`);
+      }
+
+      const parentID = parentResult[0].id;
+      for (const child of children) {
+        const { value } = child; 
+        if (value && value.trim() !== "") {
+          await db.query(sql_insert_child, [value, path, parentID]);
+        }
+      }
+    }
+    res.status(201).send("Child Treeview entries successfully created!");
+  } catch (error) {
+    res.status(400).send(error.message);
   }
 };
 
 const putTreeView = async (req, res) => {
-  const { parent } = req.body;
-  const { path, ...locations } = parent; // Extract the path and the remaining locations
+  const { parent, path } = req.body;
+  const { ...locations } = parent; // Extract the path and the remaining locations
 
   let allIds = [];
   try {
     for (const [key, value] of Object.entries(locations)) {
-      console.log(`Key: ${key}, Name: ${value}, Path: ${path}`);
-
       // Query for the ID using the name (value) and path
       let sql_1 = `SELECT id FROM tbltreeviewparent WHERE name = ? AND path = ?`;
-      console.log(`Querying for: ${value}, Path: ${path}`);
 
       const [results] = await db.query(sql_1, [key, path]);
       const ids = results.map((row) => row.id);
@@ -144,7 +178,6 @@ const putTreeView = async (req, res) => {
         const nameToUpdate = Object.values(locations)[index];
         let sql_2 = `UPDATE tbltreeviewparent SET name = ? WHERE id = ?`;
 
-        console.log(`Updating ID: ${id} with Name: ${nameToUpdate}`);
         await db.query(sql_2, [nameToUpdate, id]); // Await the update query
 
         index++; // Move to the next item
@@ -162,10 +195,34 @@ const putTreeView = async (req, res) => {
   }
 };
 
+const putTreeViewChild = async (req, res) => {
+  const { child } = req.body;
+
+  let sql_1 = `UPDATE tbltreeviewchildmenu SET name = ? WHERE id = ?`;
+
+  try {
+    for (const [key, value] of Object.entries(child)) {
+      const { id, name } = value; // Extract the id and name from each child
+      console.log(`Key: ${key}, ID: ${id}, Name: ${name}`);
+
+      // Execute the update query for each child
+      await db.query(sql_1, [name, id]);
+
+      console.log(`Updated ID: ${id} with Name: ${name}`);
+    }
+
+    res.status(200).json({ message: "Child names updated successfully" });
+  } catch (error) {
+    console.error("Error executing query:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 module.exports = {
   getTreeViewParent,
   getTreeViewChild,
-  postParentTreeView,
-  postChildTreeView,
+  postTreeView,
+  postChildTreeViewUpdate,
   putTreeView,
+  putTreeViewChild,
 };

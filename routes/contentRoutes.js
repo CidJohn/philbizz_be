@@ -6,6 +6,9 @@ const {
   postParentTreeView,
   postChildTreeView,
   putTreeView,
+  putTreeViewChild,
+  postTreeView,
+  postChildTreeViewUpdate,
 } = require("../controllers/treeviewController");
 const {
   cardSettings,
@@ -22,6 +25,10 @@ const {
   getBusinessCategories,
   companyFilter,
   getbusinessCompanyView,
+  postCategory,
+  putCategoryHeader,
+  putCategoryChild,
+  postCategoryChildUpdate,
 } = require("../controllers/businessController");
 const {
   BlogSettings,
@@ -59,9 +66,14 @@ router.post("/blog-post-content", BlogPostContent);
 router.post("/blog-post-comment", BlogCommentPost);
 router.post("/posts/like", BlogLiked);
 router.post("/posts/like-status", GetBlogLikedStatus);
-router.post("/treeview/parent", postParentTreeView);
-router.post("/treeview/children", postChildTreeView);
+router.post("/treeview/post/data", postTreeView);
+router.post("/treeview/post/child-update/data", postChildTreeViewUpdate);
+router.post("/category/post/data", postCategory);
+router.post("/category/post/child-update/data", postCategoryChildUpdate);
 
-router.put("/treeview/put/data", putTreeView)
+router.put("/treeview/put/data", putTreeView);
+router.put("/treeview/child/put/data", putTreeViewChild);
+router.put("/category/put/header/data", putCategoryHeader);
+router.put("/category/child/put/data", putCategoryChild);
 
 module.exports = router;
