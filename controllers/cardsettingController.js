@@ -98,4 +98,5 @@ const imageURL = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
 module.exports = { cardSettings, cardPath, cardDesc, cardInfo, imageURL };
