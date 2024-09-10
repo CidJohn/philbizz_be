@@ -16,6 +16,7 @@ const {
   cardDesc,
   cardInfo,
   imageURL,
+  postCardContent,
 } = require("../controllers/cardsettingController");
 const { getLanguage } = require("../controllers/translateController");
 const {
@@ -70,6 +71,7 @@ router.post("/treeview/post/data", postTreeView);
 router.post("/treeview/post/child-update/data", postChildTreeViewUpdate);
 router.post("/category/post/data", postCategory);
 router.post("/category/post/child-update/data", postCategoryChildUpdate);
+router.post("/card/content/data", postCardContent)
 
 router.put("/treeview/put/data", putTreeView);
 router.put("/treeview/child/put/data", putTreeViewChild);

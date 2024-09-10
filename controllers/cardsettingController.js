@@ -99,4 +99,80 @@ const imageURL = async (req, res) => {
   }
 };
 
-module.exports = { cardSettings, cardPath, cardDesc, cardInfo, imageURL };
+const postCardContent = async (req, res) => {
+  const { Treeview, TextLine, TextEditor } = req.body;
+
+  const _sql = `SELECT id FROM tblbusinesses WHERE header = ?`;
+  const _sql_2 = `SELECT id FROM tblcard_settings WHERE location = ? AND title = ?`;
+  const _sql_3 = `SELECT id FROM tblcard_info WHERE cardID = ?`;
+  const sql_1 = `INSERT INTO tblcard_settings(businessId, location, title, images, description) VALUES (?, ?, ?, ?, ?)`;
+  const sql_2 = `INSERT INTO tblcard_info(cardID, name, contact, email, \`desc\`, content, servicetype, icon_image, location_image) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+  const sql_3 = `INSERT INTO tblcard_image(imageID, imageURL) VALUES (?, ?)`;
+
+  try {
+    // Check if the business exists
+    const [result] = await db.query(_sql, [Treeview.name]);
+    if (result.length > 0) {
+      const businessID = result[0].id;
+
+      // Insert into tblcard_settings
+      await db.query(sql_1, [
+        businessID,
+        Treeview.child,
+        TextLine.required.title,
+        TextLine.required.image,
+        TextLine.required.description,
+      ]);
+
+      // Check if the card settings exist
+      const [settingResult] = await db.query(_sql_2, [
+        Treeview.child,
+        TextLine.required.title,
+      ]);
+
+      if (settingResult.length > 0) {
+        const cardID = settingResult[0].id;
+
+        // Insert into tblcard_info
+        await db.query(sql_2, [
+          cardID,
+          TextLine.required.title,
+          TextLine.required.contact,
+          TextLine.required.email,
+          TextLine.required.description,
+          JSON.stringify(TextEditor), // Insert QuillJS content here
+          TextLine.required.servicetype,
+          TextLine.required.image,
+          TextLine.required.location,
+        ]);
+
+        // Fetch card info and insert images from the options
+        const [resultCardInfo] = await db.query(_sql_3, [cardID]);
+        if (resultCardInfo.length > 0) {
+          const infoID = resultCardInfo[0].id;
+
+          // Insert each image from TextLine.option
+          for (const key in TextLine.option) {
+            const value = TextLine.option[key].value;
+            await db.query(sql_3, [infoID, value]);
+          }
+        }
+      }
+    }
+
+    res.status(200).send(`New ${Treeview.name} Card is being Created!`);
+  } catch (error) {
+    console.error("Error in postCardContent:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+module.exports = {
+  cardSettings,
+  cardPath,
+  cardDesc,
+  cardInfo,
+  imageURL,
+  postCardContent,
+};
