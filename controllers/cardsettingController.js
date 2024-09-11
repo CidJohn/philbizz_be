@@ -70,13 +70,14 @@ const cardDesc = async (req, res) => {
 
 const cardInfo = async (req, res) => {
   const header = req.params.type;
-  const sql = `SELECT t2.id AS ParentID, t2.name AS Name,t2.desc, t2.icon_image
+  const sql = `SELECT t2.id AS ParentID, t2.name AS Name,t2.desc,t2.content AS Content, t2.icon_image
                 ,t2.menu_image, t2.location_image, t2.servicetype AS type FROM tblcard_settings t1
                 INNER JOIN tblcard_info t2
                 ON t1.id = t2.cardID 
                 WHERE t2.name = ?`;
   try {
     const [results] = await db.query(sql, [header]);
+
     res.json(results);
   } catch (error) {
     console.error("Database query error:", error);
@@ -141,8 +142,8 @@ const postCardContent = async (req, res) => {
           TextLine.required.contact,
           TextLine.required.email,
           TextLine.required.description,
-          JSON.stringify(TextEditor), // Insert QuillJS content here
-          TextLine.required.servicetype,
+          TextEditor, // Insert QuillJS content here
+          TextLine.required.service,
           TextLine.required.image,
           TextLine.required.location,
         ]);

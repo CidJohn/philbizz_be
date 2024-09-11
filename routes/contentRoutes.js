@@ -3,8 +3,6 @@ const { getNavbar } = require("../controllers/navbarController");
 const {
   getTreeViewParent,
   getTreeViewChild,
-  postParentTreeView,
-  postChildTreeView,
   putTreeView,
   putTreeViewChild,
   postTreeView,
@@ -30,6 +28,7 @@ const {
   putCategoryHeader,
   putCategoryChild,
   postCategoryChildUpdate,
+  postBusinessContent,
 } = require("../controllers/businessController");
 const {
   BlogSettings,
@@ -72,6 +71,7 @@ router.post("/treeview/post/child-update/data", postChildTreeViewUpdate);
 router.post("/category/post/data", postCategory);
 router.post("/category/post/child-update/data", postCategoryChildUpdate);
 router.post("/card/content/data", postCardContent)
+router.post("/company/content/data", postBusinessContent)
 
 router.put("/treeview/put/data", putTreeView);
 router.put("/treeview/child/put/data", putTreeViewChild);
