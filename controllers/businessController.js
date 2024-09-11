@@ -368,6 +368,95 @@ const postCategoryChildUpdate = async (req, res) => {
   }
 };
 
+const postBusinessContent = async (req, res) => {
+  const { Treeview, TextLine, TextEditor, Personnel } = req.body;
+
+  // Queries
+  let _sql = `SELECT id FROM tblcategory WHERE name = ?`;
+  let _sql_2 = `SELECT id FROM tblcompanysettings WHERE name = ? AND parentID = ?`;
+  let _sql_3 = `SELECT id FROM tblcompany_viewpage WHERE companyID = ?`;
+
+  let sql = `INSERT INTO tblcompanysettings(parentID, name, description, image) VALUES (?,?,?,?)`;
+  let sql_2 = `INSERT INTO tblcompany_viewpage(companyID, \`desc\`, person, contact, email, address, business, locationURL)
+               VALUES (?,?,?,?,?,?,?,?)`;
+  let sql_3 = `INSERT INTO tblcompany_image(imageID, contentEditor) VALUES (?,?)`;
+  let sql_4 = `INSERT INTO tblcompany_product(productID, imageURL) VALUES (?,?)`;
+  let sql_5 = `INSERT INTO tblcompany_personnel(companyID, personName, position, imageURL) VALUES (?,?,?,?)`;
+
+  try {
+    // Query category ID based on Treeview child
+    const [categoryResult] = await db.query(_sql, [Treeview.child]);
+    if (categoryResult.length > 0) {
+      const childID = categoryResult[0].id;
+
+      // Insert company settings
+      await db.query(sql, [
+        childID,
+        TextLine.required.title,
+        TextLine.required.description,
+        TextLine.required.image,
+      ]);
+
+      // Query the company settings using childID and title
+      const [settingsResult] = await db.query(_sql_2, [
+        TextLine.required.title,
+        childID,
+      ]);
+
+      if (settingsResult.length > 0) {
+        const companyID = settingsResult[0].id;
+        const person = Personnel.entries
+          .slice(0, 1)
+          .map((item) => item.personnelName)
+          .join(", ");
+
+        // Insert into tblcompany_viewpage
+        await db.query(sql_2, [
+          companyID,
+          TextLine.required.description,
+          person, // Use the first person's name
+          TextLine.required.contact,
+          TextLine.required.email,
+          TextLine.required.description,
+          TextLine.required.service,
+          TextLine.required.location,
+        ]);
+
+        // Query the company view page
+        const [companyResult] = await db.query(_sql_3, [companyID]);
+        if (companyResult.length > 0) {
+          const pageID = companyResult[0].id;
+
+          // Insert content editor data into tblcompany_image
+          await db.query(sql_3, [pageID, TextEditor]);
+
+          // Insert products into tblcompany_product
+          for (const [key, option] of Object.entries(TextLine.option)) {
+            const value = option.value;
+            await db.query(sql_4, [pageID, value]);
+          }
+
+          // Insert personnel data into tblcompany_personnel
+          for (const entry of Personnel.entries) {
+            const { personnelName, position, imagePreview } = entry;
+            await db.query(sql_5, [
+              pageID,
+              personnelName,
+              position,
+              imagePreview,
+            ]);
+          }
+        }
+      }
+    }
+
+    res.status(200).send(`New ${Treeview.name} Card is being Created!`);
+  } catch (error) {
+    console.error("Error in postBusinessContent:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
   getBusinessData,
   getHomeViewBusiness,
@@ -378,5 +467,6 @@ module.exports = {
   postCategory,
   putCategoryHeader,
   putCategoryChild,
-  postCategoryChildUpdate
+  postCategoryChildUpdate,
+  postBusinessContent,
 };
