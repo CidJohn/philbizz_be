@@ -139,16 +139,22 @@ const getbusinessCompanyView = async (req, res) => {
       t2.business AS business,
       t2.locationURL,
       t3.imageURL AS companyImage, 
+      t3.contentEditor AS content,
       t3.desc AS imgDesc, 
       t4.name AS productName, 
       t4.imageURL as productImage, 
       t4.desc AS productDesc,
-       t5.Facebook AS facebook,
-        t5.Instragram AS instagram,
-        t5.x AS x,
-        t5.Gmail AS Gmail,
-        t5.website AS website,
-        t5.linkin AS linkin
+      t5.personName,
+      t5.position,
+      t5.imageURL AS personPhoto,
+       t6.Facebook AS facebook,
+        t6.Instragram AS instagram,
+        t6.x AS x,
+        t6.kakaotalk AS Kakaotalk,
+        t6.website AS website,
+        t6.Telegram AS telegram,
+        t6.whatsapps AS WhatsApp,
+        t6.wechat AS WeChat
     FROM 
       tblcompanysettings t1 
     JOIN 
@@ -158,7 +164,9 @@ const getbusinessCompanyView = async (req, res) => {
     JOIN 
       tblcompany_product t4 ON t2.id = t4.productID
     JOIN 
-      tblcompany_social t5 ON t2.id = t5.socialID
+      tblcompany_personnel t5 ON t2.id = t5.companyID
+    JOIN 
+      tblcompany_social t6 ON t2.id = t6.socialID
   `;
   const params = [];
   if (company) {
@@ -191,6 +199,7 @@ const getbusinessCompanyView = async (req, res) => {
     // Extract unique images and products
     const images = [];
     const products = [];
+    const personnel = [];
     const socials = [];
 
     rows.forEach((row) => {
@@ -198,10 +207,15 @@ const getbusinessCompanyView = async (req, res) => {
         !images.some(
           (image) =>
             image.companyImage === row.companyImage &&
-            image.imgDesc === row.imgDesc
+            image.imgDesc === row.imgDesc &&
+            image.content === row.content
         )
       ) {
-        images.push({ companyImage: row.companyImage, imgDesc: row.imgDesc });
+        images.push({
+          companyImage: row.companyImage,
+          imgDesc: row.imgDesc,
+          content: row.content,
+        });
       }
 
       if (
@@ -219,13 +233,29 @@ const getbusinessCompanyView = async (req, res) => {
         });
       }
       if (
+        !personnel.some(
+          (person) =>
+            person.personName === row.personName &&
+            person.position === row.position &&
+            person.personPhoto === row.personPhoto
+        )
+      ) {
+        personnel.push({
+          title: row.personName,
+          desc: row.position,
+          image: row.personPhoto,
+        });
+      }
+      if (
         !socials.some(
           (social) =>
             social.facebook === row.facebook &&
             social.instagram === row.instagram &&
             social.x === row.x &&
             social.website === row.website &&
-            social.linkin === row.linkin
+            social.Telegram === row.Telegram && 
+            social.wechat === row.WeChat &&
+            social.WhatsApp === row.WhatsApp
         )
       ) {
         socials.push({
@@ -233,7 +263,9 @@ const getbusinessCompanyView = async (req, res) => {
           instagram: row.instagram,
           x: row.x,
           website: row.website,
-          linkin: row.linkin,
+          Telegram: row.Telegram,
+          Wechat: row.WeChat,
+          WhatsApp: row.WhatsApp
         });
       }
     });
@@ -243,6 +275,7 @@ const getbusinessCompanyView = async (req, res) => {
       ...companyData,
       images,
       products,
+      personnel,
       socials,
     };
 
@@ -382,14 +415,13 @@ const postBusinessContent = async (req, res) => {
   let sql_3 = `INSERT INTO tblcompany_image(imageID, contentEditor) VALUES (?,?)`;
   let sql_4 = `INSERT INTO tblcompany_product(productID, imageURL) VALUES (?,?)`;
   let sql_5 = `INSERT INTO tblcompany_personnel(companyID, personName, position, imageURL) VALUES (?,?,?,?)`;
+  let sql_6 = `INSERT INTO tblcompany_social(socialID) VALUES(?)`;
 
   try {
-    // Query category ID based on Treeview child
     const [categoryResult] = await db.query(_sql, [Treeview.child]);
     if (categoryResult.length > 0) {
       const childID = categoryResult[0].id;
 
-      // Insert company settings
       await db.query(sql, [
         childID,
         TextLine.required.title,
@@ -397,7 +429,6 @@ const postBusinessContent = async (req, res) => {
         TextLine.required.image,
       ]);
 
-      // Query the company settings using childID and title
       const [settingsResult] = await db.query(_sql_2, [
         TextLine.required.title,
         childID,
@@ -410,11 +441,10 @@ const postBusinessContent = async (req, res) => {
           .map((item) => item.personnelName)
           .join(", ");
 
-        // Insert into tblcompany_viewpage
         await db.query(sql_2, [
           companyID,
           TextLine.required.description,
-          person, // Use the first person's name
+          person,
           TextLine.required.contact,
           TextLine.required.email,
           TextLine.required.description,
@@ -422,21 +452,17 @@ const postBusinessContent = async (req, res) => {
           TextLine.required.location,
         ]);
 
-        // Query the company view page
         const [companyResult] = await db.query(_sql_3, [companyID]);
         if (companyResult.length > 0) {
           const pageID = companyResult[0].id;
 
-          // Insert content editor data into tblcompany_image
           await db.query(sql_3, [pageID, TextEditor]);
 
-          // Insert products into tblcompany_product
           for (const [key, option] of Object.entries(TextLine.option)) {
             const value = option.value;
             await db.query(sql_4, [pageID, value]);
           }
 
-          // Insert personnel data into tblcompany_personnel
           for (const entry of Personnel.entries) {
             const { personnelName, position, imagePreview } = entry;
             await db.query(sql_5, [
@@ -446,6 +472,7 @@ const postBusinessContent = async (req, res) => {
               imagePreview,
             ]);
           }
+          await db.query(sql_6, [pageID]);
         }
       }
     }
