@@ -78,21 +78,17 @@ const BlogSettings = async (req, res) => {
 
 // Handle fetching blog content
 const BlogContent = async (req, res) => {
-  const { title } = req.query;
+  const { title, username } = req.query;
   let sql = `
-    SELECT t1.title, t1.description, t1.imageURL AS titleImage, t2.imageURL AS contentImage, t2.description AS contentDESC
+    SELECT t1.title, t1.description, t1.imageURL AS titleImage, t1.image, t2.imageURL AS contentImage, t2.description AS contentDESC,
+    t2.content
     FROM tblblog_settings t1
     JOIN tblblog_content t2 ON t1.id = t2.contentID
+    JOIN tblusers t3 ON t3.id = t1.user_id
+     WHERE t1.title = ? AND t3.username = ?
   `;
-  const params = [];
-
-  if (title) {
-    sql += " WHERE t1.title = ?";
-    params.push(title);
-  }
-
   try {
-    const [rows] = await db.query(sql, params);
+    const [rows] = await db.query(sql, [title, username]);
 
     if (rows.length === 0) {
       return res.status(404).json({ message: "Blog not found" });
@@ -101,7 +97,8 @@ const BlogContent = async (req, res) => {
       title: rows[0].title,
       description: rows[0].description,
       contentDesc: rows[0].contentDesc,
-      image: rows[0].titleImage,
+      image1: rows[0].titleImage,
+      image2: rows[0].image,
     };
 
     const images = [];
@@ -111,12 +108,14 @@ const BlogContent = async (req, res) => {
         !images.some(
           (imageURL) =>
             imageURL.contentImage === row.contentImage &&
-            imageURL.contentDESC === row.contentDESC
+            imageURL.contentDESC === row.contentDESC &&
+            imageURL.content === row.content
         )
       ) {
         images.push({
           imageURL: row.contentImage,
           contentDESC: row.contentDESC,
+          content: row.content,
         });
       }
     });
@@ -303,6 +302,31 @@ const GetBlogLikedStatus = async (req, res) => {
   }
 };
 
+const postBlogContent = async (req, res) => {
+  const { header, content } = req.body;
+  let _sql = `INSERT INTO tblblog_settings (user_id, title, description, image) VALUES (?,?,?,?)`;
+  let _sql_2 = `INSERT INTO tblblog_content (contentID, content) VALUES (?,?)`;
+  let sql_1 = `SELECT id FROM tblblog_settings WHERE user_id = ? AND title = ?`;
+  try {
+    await db.query(_sql, [
+      5,
+      header.text.title,
+      header.text.description,
+      header.image,
+    ]);
+    const [result] = await db.query(sql_1, [5, header.text.title]);
+    if (result.length > 0) {
+      const contentId = result[0].id;
+      await db.query(_sql_2, [contentId, content]);
+    }
+
+    res.status(200).send("New Blog Being Posted!");
+  } catch (error) {
+    console.error("Error fetching like status:", error.message);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
 module.exports = {
   BlogSettings,
   BlogContent,
@@ -312,5 +336,6 @@ module.exports = {
   BlogCommentPost,
   BlogLiked,
   GetBlogLikedStatus,
+  postBlogContent,
   upload,
 };
