@@ -39,6 +39,7 @@ const {
   BlogComment,
   BlogLiked,
   GetBlogLikedStatus,
+  postBlogContent,
 } = require("../controllers/blogController");
 const router = express.Router();
 
@@ -72,6 +73,7 @@ router.post("/category/post/data", postCategory);
 router.post("/category/post/child-update/data", postCategoryChildUpdate);
 router.post("/card/content/data", postCardContent)
 router.post("/company/content/data", postBusinessContent)
+router.post("/blog/content/data", postBlogContent)
 
 router.put("/treeview/put/data", putTreeView);
 router.put("/treeview/child/put/data", putTreeViewChild);
