@@ -118,7 +118,7 @@ const postTreeView = async (req, res) => {
       }
     }
 
-    res.status(201).send("Parent and Child Treeview Created!");
+    return res.status(201).send("Parent and Child Treeview Created!");
   } catch (error) {
     res.status(400).send(error.message);
   }
@@ -142,7 +142,7 @@ const postChildTreeViewUpdate = async (req, res) => {
 
       const parentID = parentResult[0].id;
       for (const child of children) {
-        const { value } = child; 
+        const { value } = child;
         if (value && value.trim() !== "") {
           await db.query(sql_insert_child, [value, path, parentID]);
         }
@@ -199,7 +199,6 @@ const putTreeViewChild = async (req, res) => {
   const { child } = req.body;
 
   let sql_1 = `UPDATE tbltreeviewchildmenu SET name = ? WHERE id = ?`;
-
   try {
     for (const [key, value] of Object.entries(child)) {
       const { id, name } = value; // Extract the id and name from each child

@@ -70,7 +70,7 @@ const cardDesc = async (req, res) => {
 
 const cardInfo = async (req, res) => {
   const header = req.params.type;
-  const sql = `SELECT t2.id AS ParentID, t2.name AS Name,t2.desc,t2.content AS Content, t2.icon_image
+  const sql = `SELECT t2.id AS ParentID, t2.name AS Name,t2.desc,t2.content AS Content, t2.icon_image, t2.contact, t2.email
                 ,t2.menu_image, t2.location_image, t2.servicetype AS type FROM tblcard_settings t1
                 INNER JOIN tblcard_info t2
                 ON t1.id = t2.cardID 
@@ -87,7 +87,7 @@ const cardInfo = async (req, res) => {
 
 const imageURL = async (req, res) => {
   const header = req.params.type;
-  const sql = `SELECT t1.id AS ParentID, t2.imageURL FROM tblcard_info t1
+  const sql = `SELECT t1.id AS ParentID, t2.id AS childID, t2.imageURL FROM tblcard_info t1
                 LEFT JOIN tblcard_image t2
                 ON t1.id = t2.imageID
                 WHERE t1.name = ?`;
@@ -169,6 +169,74 @@ const postCardContent = async (req, res) => {
   }
 };
 
+const putCardContent = async (req, res) => {
+  const { Treeview, TextLine, TextEditor } = req.body;
+
+  // SQL queries
+  const _sql_1 = `SELECT id FROM tblcard_settings WHERE location = ? AND title = ?`;
+  const _sql_2 = `SELECT id FROM tblcard_info WHERE cardID = ?`;
+  
+  // Fix the use of commas in the SQL queries instead of AND
+  const sql_1 = `UPDATE tblcard_settings 
+                 SET location = ?, title = ?, images = ?, description = ? 
+                 WHERE id= ?`;
+
+  const sql_2 = `UPDATE tblcard_info 
+                 SET name = ?, contact = ?, email = ?, \`desc\` = ?, content = ?, 
+                 servicetype = ?, icon_image = ?, location_image = ? 
+                 WHERE id = ?`;
+
+  const sql_3 = `UPDATE tblcard_image SET imageURL = ? WHERE id = ?`;
+
+  try {
+    // Execute the first query to get the card ID
+    const [res_1] = await db.query(_sql_1, [Treeview.childloc, Treeview.title]);
+    if (res_1.length > 0) {
+      const cardID = res_1[0].id;
+
+      // Update tblcard_settings
+      await db.query(sql_1, [
+        Treeview.child,
+        TextLine.required.title,
+        TextLine.required.image,
+        TextLine.required.description,
+        cardID,
+      ]);
+
+      // Execute the second query to get the card info ID
+      const [res_2] = await db.query(_sql_2, [cardID]);
+      if (res_2.length > 0) {
+        const infoID = res_2[0].id;
+
+        // Update tblcard_info
+        await db.query(sql_2, [
+          TextLine.required.title,
+          TextLine.required.contact,
+          TextLine.required.email,
+          TextLine.required.description,
+          TextEditor,
+          TextLine.required.service,
+          TextLine.required.image,
+          TextLine.required.location,
+          infoID,
+        ]);
+
+        // Update tblcard_image for each image in the TextLine.option array
+        for (const key in TextLine.option) {
+          const value = TextLine.option[key].value;
+          const id = TextLine.option[key].id;
+          await db.query(sql_3, [value, id]);
+        }
+      }
+    }
+    res.status(200).send(`New ${Treeview.name} Card has been updated!`);
+  } catch (error) {
+    console.error("Error in putCardContent:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
 module.exports = {
   cardSettings,
   cardPath,
@@ -176,4 +244,5 @@ module.exports = {
   cardInfo,
   imageURL,
   postCardContent,
+  putCardContent
 };

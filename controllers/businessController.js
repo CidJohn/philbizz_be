@@ -318,7 +318,7 @@ const postCategory = async (req, res) => {
     }
 
     // Success response after all children are inserted
-    res.status(201).send("Categories successfully created!");
+    return res.status(201).send("Categories successfully created!");
   } catch (error) {
     // Error handling
     res.status(400).send(`Error: ${error.message}`);
@@ -345,7 +345,7 @@ const putCategoryHeader = async (req, res) => {
       }
     }
 
-    res.status(200).send("Category headers updated successfully!");
+    return res.status(200).send("Category headers updated successfully!");
   } catch (error) {
     res.status(500).send(`Error updating categories: ${error.message}`);
   }
@@ -366,7 +366,7 @@ const putCategoryChild = async (req, res) => {
         }
       }
     }
-    res.status(200).send("Category children updated successfully!");
+    return res.status(200).send("Category children updated successfully!");
   } catch (error) {
     res.status(500).send(`Error updating children: ${error.message}`);
   }
@@ -395,7 +395,7 @@ const postCategoryChildUpdate = async (req, res) => {
       }
     }
 
-    res.status(201).send("Categories added successfully!");
+    return res.status(201).send("Categories added successfully!");
   } catch (error) {
     res.status(500).send(`Error adding categories: ${error.message}`);
   }
@@ -477,7 +477,7 @@ const postBusinessContent = async (req, res) => {
       }
     }
 
-    res.status(200).send(`New ${Treeview.name} Card is being Created!`);
+    return res.status(200).send(`New ${Treeview.name} Card is being Created!`);
   } catch (error) {
     console.error("Error in postBusinessContent:", error);
     res.status(500).json({ error: error.message });
