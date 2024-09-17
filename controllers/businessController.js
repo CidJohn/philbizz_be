@@ -85,6 +85,7 @@ const getCompanySettings = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
 const companyFilter = async (req, res) => {
   const { name, title, description } = req.query;
 
@@ -138,35 +139,10 @@ const getbusinessCompanyView = async (req, res) => {
       t2.employee AS employee,
       t2.business AS business,
       t2.locationURL,
-      t3.imageURL AS companyImage, 
-      t3.contentEditor AS content,
-      t3.desc AS imgDesc, 
-      t4.name AS productName, 
-      t4.imageURL as productImage, 
-      t4.desc AS productDesc,
-      t5.personName,
-      t5.position,
-      t5.imageURL AS personPhoto,
-       t6.Facebook AS facebook,
-        t6.Instragram AS instagram,
-        t6.x AS x,
-        t6.kakaotalk AS Kakaotalk,
-        t6.website AS website,
-        t6.Telegram AS telegram,
-        t6.whatsapps AS WhatsApp,
-        t6.wechat AS WeChat
     FROM 
       tblcompanysettings t1 
     JOIN 
       tblcompany_viewpage t2 ON t1.id = t2.companyID
-    JOIN 
-      tblcompany_image t3 ON t2.id = t3.imageID
-    JOIN 
-      tblcompany_product t4 ON t2.id = t4.productID
-    JOIN 
-      tblcompany_personnel t5 ON t2.id = t5.companyID
-    JOIN 
-      tblcompany_social t6 ON t2.id = t6.socialID
   `;
   const params = [];
   if (company) {
@@ -180,106 +156,90 @@ const getbusinessCompanyView = async (req, res) => {
     if (rows.length === 0) {
       return res.status(404).json({ message: "Company not found" });
     }
+    res.json(rows);
+  } catch (error) {
+    console.error("Database query error:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
 
-    // Extract unique company details
-    const companyData = {
-      companyName: rows[0].companyName,
-      imgLOGO: rows[0].imgLOGO,
-      description: rows[0].description,
-      contact: rows[0].contact,
-      email: rows[0].email,
-      address: rows[0].address,
-      person: rows[0].person,
-      establish: rows[0].establish,
-      employee: rows[0].employee,
-      business: rows[0].business,
-      locationURL: rows[0].locationURL,
-    };
+const getCompany_Image = async (req, res) => {
+  const { company } = req.query;
+  let sql = `SELECT t3.imageURL AS companyImage, 
+      t3.contentEditor AS content,
+      t3.desc AS imgDesc
+      FROM  tblcompanysettings t1 
+      JOIN  tblcompany_viewpage t2 ON t1.id = t2.companyID
+      JOIN tblcompany_image t3 ON t2.id = t3.imageID
+      WHERE t1.name = ? `;
 
-    // Extract unique images and products
-    const images = [];
-    const products = [];
-    const personnel = [];
-    const socials = [];
+  try {
+    const [result] = await db.query(sql, [company]);
+    if (result.length > 0) {
+      res.json(result);
+    }
+  } catch (error) {
+    console.error("Database query error:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
 
-    rows.forEach((row) => {
-      if (
-        !images.some(
-          (image) =>
-            image.companyImage === row.companyImage &&
-            image.imgDesc === row.imgDesc &&
-            image.content === row.content
-        )
-      ) {
-        images.push({
-          companyImage: row.companyImage,
-          imgDesc: row.imgDesc,
-          content: row.content,
-        });
-      }
+const getCompany_product = async (req, res) => {
+  const { company } = req.query;
+  let sql = `SELECT t3.name AS productName, 
+      t3.imageURL as productImage, 
+      t3.desc AS productDesc FROM tblcompanysettings t1
+      JOIN tblcompany_viewpage t2 ON t1.id = t2.companyID
+      JOIN tblcompany_product t3 ON t2.id = t3.productID
+      WHERE t1.name = ?`;
+  try {
+    const [result] = await db.query(sql, [company]);
+    if (result.length) {
+      res.json(result);
+    }
+  } catch (error) {
+    console.error("Database query error:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
 
-      if (
-        !products.some(
-          (product) =>
-            product.productName === row.productName &&
-            product.productImage === row.productImage &&
-            product.productDesc === row.productDesc
-        )
-      ) {
-        products.push({
-          productName: row.productName,
-          productImage: row.productImage,
-          productDesc: row.productDesc,
-        });
-      }
-      if (
-        !personnel.some(
-          (person) =>
-            person.personName === row.personName &&
-            person.position === row.position &&
-            person.personPhoto === row.personPhoto
-        )
-      ) {
-        personnel.push({
-          title: row.personName,
-          desc: row.position,
-          image: row.personPhoto,
-        });
-      }
-      if (
-        !socials.some(
-          (social) =>
-            social.facebook === row.facebook &&
-            social.instagram === row.instagram &&
-            social.x === row.x &&
-            social.website === row.website &&
-            social.Telegram === row.Telegram && 
-            social.wechat === row.WeChat &&
-            social.WhatsApp === row.WhatsApp
-        )
-      ) {
-        socials.push({
-          facebook: row.facebook,
-          instagram: row.instagram,
-          x: row.x,
-          website: row.website,
-          Telegram: row.Telegram,
-          Wechat: row.WeChat,
-          WhatsApp: row.WhatsApp
-        });
-      }
-    });
+const getCompany_personnel = async (req, res) => {
+  const { company } = req.query;
+  let sql = `SELECT t3.personName,
+      t3.position,
+      t3.imageURL AS personPhoto FROM tblcompanysettings t1
+      JOIN tblcompany_viewpage t2 ON t1.id = t2.companyID
+      JOIN tblcompany_personnel t3 ON t2.id = t3.companyID
+       WHERE t1.name = ?`;
+  try {
+    const [result] = await db.query(sql, [company]);
+    if (result.length) {
+      res.json(result);
+    }
+  } catch (error) {
+    console.error("Database query error:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
 
-    // Combine company data with images and products
-    const formattedData = {
-      ...companyData,
-      images,
-      products,
-      personnel,
-      socials,
-    };
-
-    res.json(formattedData);
+const getCompany_social = async (req, res) => {
+  const { company } = req.query;
+  let sql = `SELECT t3.Facebook AS facebook,
+        t3.Instragram AS instagram,
+        t3.x AS x,
+        t3.kakaotalk AS Kakaotalk,
+        t3.website AS website,
+        t3.Telegram AS telegram,
+        t3.whatsapps AS WhatsApp,
+        t3.wechat AS WeChat FROM tblcompanysettings t1
+      JOIN tblcompany_viewpage t2 ON t1.id = t2.companyID
+      JOIN  tblcompany_social t3 ON t2.id = t3.socialID
+      WHERE t1.name = ?`;
+  try {
+    const [result] = await db.query(sql, [company]);
+    if (result.length) {
+      res.json(result);
+    }
   } catch (error) {
     console.error("Database query error:", error);
     res.status(500).json({ error: error.message });
@@ -491,6 +451,10 @@ module.exports = {
   getCompanySettings,
   companyFilter,
   getbusinessCompanyView,
+  getCompany_Image,
+  getCompany_personnel,
+  getCompany_product,
+  getCompany_social,
   postCategory,
   putCategoryHeader,
   putCategoryChild,
