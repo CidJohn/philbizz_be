@@ -30,6 +30,10 @@ const {
   putCategoryChild,
   postCategoryChildUpdate,
   postBusinessContent,
+  getCompany_Image,
+  getCompany_personnel,
+  getCompany_product,
+  getCompany_social,
 } = require("../controllers/businessController");
 const {
   BlogSettings,
@@ -58,7 +62,13 @@ router.get("/homeview-business", getHomeViewBusiness);
 router.get("/business-settings", getCompanySettings);
 router.get("/business-category", getBusinessCategories);
 router.get("/business-company-filter", companyFilter);
+
 router.get("/business-company-viewpage", getbusinessCompanyView);
+router.get("/business-company-images", getCompany_Image);
+router.get("/business-company-personnel", getCompany_personnel);
+router.get("/business-company-product", getCompany_product);
+router.get("/business-company-socials", getCompany_social)
+
 router.get("/blog-settings", BlogSettings);
 router.get("/blog-content", BlogContent);
 router.get("/comment-section", BlogComment);
