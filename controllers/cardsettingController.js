@@ -175,7 +175,7 @@ const putCardContent = async (req, res) => {
   // SQL queries
   const _sql_1 = `SELECT id FROM tblcard_settings WHERE location = ? AND title = ?`;
   const _sql_2 = `SELECT id FROM tblcard_info WHERE cardID = ?`;
-  
+
   // Fix the use of commas in the SQL queries instead of AND
   const sql_1 = `UPDATE tblcard_settings 
                  SET location = ?, title = ?, images = ?, description = ? 
@@ -194,9 +194,10 @@ const putCardContent = async (req, res) => {
     if (res_1.length > 0) {
       const cardID = res_1[0].id;
 
+      const childTree = Treeview.child ? Treeview.child : Treeview.childloc;
       // Update tblcard_settings
       await db.query(sql_1, [
-        Treeview.child,
+        childTree,
         TextLine.required.title,
         TextLine.required.image,
         TextLine.required.description,
@@ -236,7 +237,6 @@ const putCardContent = async (req, res) => {
   }
 };
 
-
 module.exports = {
   cardSettings,
   cardPath,
@@ -244,5 +244,5 @@ module.exports = {
   cardInfo,
   imageURL,
   postCardContent,
-  putCardContent
+  putCardContent,
 };

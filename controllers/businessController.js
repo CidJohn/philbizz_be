@@ -74,7 +74,7 @@ const getCompanySettings = async (req, res) => {
     t1.id = t2.parentID JOIN  tblcompanycategory t3 ON
     t3.id = t1.parentID
     GROUP BY t2.name, t3.id, t1.name, t2.id, t2.description, t2.image 
-    ORDER BY t1.created_at DESC;
+    ORDER BY t2.created_at DESC;
 `;
 
   try {
@@ -138,7 +138,7 @@ const getbusinessCompanyView = async (req, res) => {
       t2.establish AS establish,
       t2.employee AS employee,
       t2.business AS business,
-      t2.locationURL,
+      t2.locationURL
     FROM 
       tblcompanysettings t1 
     JOIN 
@@ -224,14 +224,8 @@ const getCompany_personnel = async (req, res) => {
 
 const getCompany_social = async (req, res) => {
   const { company } = req.query;
-  let sql = `SELECT t3.Facebook AS facebook,
-        t3.Instragram AS instagram,
-        t3.x AS x,
-        t3.kakaotalk AS Kakaotalk,
-        t3.website AS website,
-        t3.Telegram AS telegram,
-        t3.whatsapps AS WhatsApp,
-        t3.wechat AS WeChat FROM tblcompanysettings t1
+  let sql = `SELECT t3.SocialMedia AS SocialMedia,
+        t3.SocialValue AS SocialValue FROM tblcompanysettings t1
       JOIN tblcompany_viewpage t2 ON t1.id = t2.companyID
       JOIN  tblcompany_social t3 ON t2.id = t3.socialID
       WHERE t1.name = ?`;
