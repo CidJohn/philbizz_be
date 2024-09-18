@@ -21,7 +21,7 @@ const getBusinessData = (req, res) => {
 };
 
 const getHomeViewBusiness = async (req, res) => {
-  const sql = `SELECT t1.Header, t1.descname, t2.title, t2.images, t2.description, t2.created_at 
+  const sql = `SELECT t1.Header, t1.descname, t2.title, t2.types, t2.images, t2.description, t2.created_at 
                 FROM tblbusinesses t1
                 JOIN tblcard_settings t2
                 ON t1.id = t2.businessId 
