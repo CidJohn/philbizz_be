@@ -1,6 +1,9 @@
 const db = require("../db_conn/db");
 const path = require("path");
 const fs = require("fs");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const { imageURL } = require("./cardsettingController");
 
 const getBusinessData = (req, res) => {
   const filePath = path.join(
@@ -165,7 +168,7 @@ const getbusinessCompanyView = async (req, res) => {
 
 const getCompany_Image = async (req, res) => {
   const { company } = req.query;
-  let sql = `SELECT t3.imageURL AS companyImage, 
+  let sql = `SELECT t3.id ,t3.imageURL AS companyImage, 
       t3.contentEditor AS content,
       t3.desc AS imgDesc
       FROM  tblcompanysettings t1 
@@ -176,7 +179,21 @@ const getCompany_Image = async (req, res) => {
   try {
     const [result] = await db.query(sql, [company]);
     if (result.length > 0) {
-      res.json(result);
+      const companyToken = result.map((result) => {
+        const contentToken = jwt.sign(
+          { id: result.id },
+          process.env.SECRET_KEY,
+          {
+            expiresIn: "1h",
+            algorithm: "HS256",
+          }
+        );
+        return {
+          ...result,
+          id: contentToken,
+        };
+      });
+      res.json(companyToken);
     }
   } catch (error) {
     console.error("Database query error:", error);
@@ -186,7 +203,7 @@ const getCompany_Image = async (req, res) => {
 
 const getCompany_product = async (req, res) => {
   const { company } = req.query;
-  let sql = `SELECT t3.name AS productName, 
+  let sql = `SELECT t3.id ,t3.name AS productName, 
       t3.imageURL as productImage, 
       t3.desc AS productDesc FROM tblcompanysettings t1
       JOIN tblcompany_viewpage t2 ON t1.id = t2.companyID
@@ -195,7 +212,21 @@ const getCompany_product = async (req, res) => {
   try {
     const [result] = await db.query(sql, [company]);
     if (result.length) {
-      res.json(result);
+      const companyToken = result.map((result) => {
+        const contentToken = jwt.sign(
+          { id: result.id },
+          process.env.SECRET_KEY,
+          {
+            expiresIn: "1h",
+            algorithm: "HS256",
+          }
+        );
+        return {
+          ...result,
+          id: contentToken,
+        };
+      });
+      res.json(companyToken);
     }
   } catch (error) {
     console.error("Database query error:", error);
@@ -205,7 +236,7 @@ const getCompany_product = async (req, res) => {
 
 const getCompany_personnel = async (req, res) => {
   const { company } = req.query;
-  let sql = `SELECT t3.personName,
+  let sql = `SELECT t3.id ,t3.personName,
       t3.position,
       t3.imageURL AS personPhoto FROM tblcompanysettings t1
       JOIN tblcompany_viewpage t2 ON t1.id = t2.companyID
@@ -214,7 +245,21 @@ const getCompany_personnel = async (req, res) => {
   try {
     const [result] = await db.query(sql, [company]);
     if (result.length) {
-      res.json(result);
+      const companyToken = result.map((result) => {
+        const contentToken = jwt.sign(
+          { id: result.id },
+          process.env.SECRET_KEY,
+          {
+            expiresIn: "1h",
+            algorithm: "HS256",
+          }
+        );
+        return {
+          ...result,
+          id: contentToken,
+        };
+      });
+      res.json(companyToken);
     }
   } catch (error) {
     console.error("Database query error:", error);
@@ -224,7 +269,7 @@ const getCompany_personnel = async (req, res) => {
 
 const getCompany_social = async (req, res) => {
   const { company } = req.query;
-  let sql = `SELECT t3.SocialMedia AS SocialMedia,
+  let sql = `SELECT t3.id ,t3.SocialMedia AS SocialMedia,
         t3.SocialValue AS SocialValue FROM tblcompanysettings t1
       JOIN tblcompany_viewpage t2 ON t1.id = t2.companyID
       JOIN  tblcompany_social t3 ON t2.id = t3.socialID
@@ -232,7 +277,21 @@ const getCompany_social = async (req, res) => {
   try {
     const [result] = await db.query(sql, [company]);
     if (result.length) {
-      res.json(result);
+      const companyToken = result.map((result) => {
+        const contentToken = jwt.sign(
+          { id: result.id },
+          process.env.SECRET_KEY,
+          {
+            expiresIn: "1h",
+            algorithm: "HS256",
+          }
+        );
+        return {
+          ...result,
+          id: contentToken,
+        };
+      });
+      res.json(companyToken);
     }
   } catch (error) {
     console.error("Database query error:", error);
@@ -369,7 +428,7 @@ const postBusinessContent = async (req, res) => {
   let sql_3 = `INSERT INTO tblcompany_image(imageID, contentEditor) VALUES (?,?)`;
   let sql_4 = `INSERT INTO tblcompany_product(productID, imageURL) VALUES (?,?)`;
   let sql_5 = `INSERT INTO tblcompany_personnel(companyID, personName, position, imageURL) VALUES (?,?,?,?)`;
-  let sql_6 = `INSERT INTO tblcompany_social(socialID) VALUES(?)`;
+  let sql_6 = `INSERT INTO tblcompany_social(socialID, SocialMedia, SocialValue) VALUES(?,?,?)`;
 
   try {
     const [categoryResult] = await db.query(_sql, [Treeview.child]);
@@ -401,7 +460,7 @@ const postBusinessContent = async (req, res) => {
           person,
           TextLine.required.contact,
           TextLine.required.email,
-          TextLine.required.description,
+          TextLine.required.address,
           TextLine.required.service,
           TextLine.required.location,
         ]);
@@ -426,14 +485,159 @@ const postBusinessContent = async (req, res) => {
               imagePreview,
             ]);
           }
-          await db.query(sql_6, [pageID]);
+          for (const item of TextLine.social) {
+            const { social, link } = item;
+            await db.query(sql_6, [pageID, social, link]);
+          }
         }
       }
     }
 
-    return res.status(200).send(`New ${Treeview.name} Card is being Created!`);
+    res.status(200).send(`New ${Treeview.name} Card is being Created!`);
   } catch (error) {
     console.error("Error in postBusinessContent:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const putBusinessContent = async (req, res) => {
+  const { Treeview, TextLine, TextEditor, Personnel } = req.body;
+
+  let _sql = `SELECT id FROM tblcategory WHERE name = ?`;
+  let _sql_2 = `SELECT id FROM tblcompanysettings WHERE parentID = ? AND name = ?`;
+  let _sql_3 = `SELECT id FROM tblcompany_viewpage WHERE companyID = ?`;
+
+  let sql_update = `UPDATE tblcompanysettings SET parentID=?, name=?, description=?, image=? WHERE id = ?`;
+  let sql_update_2 = `UPDATE tblcompany_viewpage SET \`desc\`= ?, person = ?, contact = ?, email = ?, address = ?, business = ?, locationURL = ? WHERE id = ?`;
+  let sql_update_3 = `UPDATE tblcompany_image SET contentEditor = ? WHERE imageID = ?`;
+
+  let sql_update_4 = `UPDATE tblcompany_personnel SET personName = ?, position = ?, imageURL = ? WHERE id = ?`;
+  let sql_insert_4 = `INSERT INTO tblcompany_personnel (companyID,personName, position, imageURL) VALUES (?, ?, ?,?)`;
+
+  let sql_update_5 = `UPDATE tblcompany_product SET imageURL = ? WHERE id = ?`;
+  let sql_insert_5 = `INSERT INTO tblcompany_product (productID, imageURL) VALUES (?,?)`;
+
+  let sql_update_6 = `UPDATE tblcompany_social SET SocialMedia = ?, SocialValue = ? WHERE id = ?`;
+  let sql_insert_6 = `INSERT INTO tblcompany_social (socialID, SocialMedia, SocialValue) VALUES (?, ?,?)`;
+
+  try {
+    const [categoryID] = await db.query(_sql, [Treeview.childloc]);
+    if (categoryID.length === 0)
+      return res.status(404).json({ error: "Category not found" });
+
+    const categoryId = categoryID[0].id;
+    const [settingsID] = await db.query(_sql_2, [categoryId, Treeview.title]);
+
+    if (settingsID.length === 0)
+      return res.status(404).json({ error: "Settings not found" });
+
+    const settingId = settingsID[0].id;
+
+    const [categoryUpdateID] = await db.query(_sql, [Treeview.child]);
+    if (categoryUpdateID.length > 0) {
+      const categoryUpdateId = categoryUpdateID[0].id;
+      await db.query(sql_update, [
+        categoryUpdateId,
+        TextLine.required.title,
+        TextLine.required.address,
+        TextLine.required.image,
+        settingId,
+      ]);
+    }
+
+    const [viewPageID] = await db.query(_sql_3, [settingId]);
+    if (viewPageID.length > 0) {
+      const viewPageId = viewPageID[0].id;
+      const person = Personnel.entries
+        .slice(0, 1)
+        .map((item) => item.personnelName)
+        .join(", ");
+      await db.query(sql_update_2, [
+        TextLine.required.description,
+        person,
+        TextLine.required.contact,
+        TextLine.required.email,
+        TextLine.required.address,
+        TextLine.required.service,
+        TextLine.required.location,
+        viewPageId,
+      ]);
+
+      await db.query(sql_update_3, [TextEditor, viewPageId]);
+
+      // Personnel update/insert
+      const personnelPromises = Personnel.entries.map(async (entry) => {
+        const {
+          id,
+          personnelName,
+          position,
+          imagePreview,
+          delete: deleteEntry,
+        } = entry;
+
+        if (!personnelName || !position || !imagePreview) {
+          return; // Skip if any required field is missing
+        }
+
+        if (id && typeof id === "string") {
+          const { id: personnelID } = jwt.verify(id, process.env.SECRET_KEY); // Extract just the ID
+          if (deleteEntry) {
+            // Delete personnel
+            return db.query(sql_delete_4, [personnelID]);
+          } else {
+            // Update personnel
+            return db.query(sql_update_4, [
+              personnelName,
+              position,
+              imagePreview,
+              personnelID,
+            ]);
+          }
+        } else if (!deleteEntry) {
+          return db.query(sql_insert_4, [
+            viewPageId,
+            personnelName,
+            position,
+            imagePreview,
+          ]);
+        }
+      });
+      await Promise.all(personnelPromises);
+
+      // Product update/insert
+      const productPromises = TextLine.option.map(async (product) => {
+        const { id, value } = product;
+
+        if (id && typeof id === "string") {
+          // Update product
+          const { id: productID } = jwt.verify(id, process.env.SECRET_KEY);
+          return db.query(sql_update_5, [value, productID]);
+        } else {
+          // Insert new product
+          return db.query(sql_insert_5, [viewPageId, value]);
+        }
+      });
+      await Promise.all(productPromises);
+
+      // Social media update/insert
+      const socialPromises = TextLine.social.map(async (item) => {
+        const { id, social, link } = item;
+
+        if (id && typeof id === "string") {
+          // Update social media
+          const { id: socialID } = jwt.verify(id, process.env.SECRET_KEY);
+          return db.query(sql_update_6, [social, link, socialID]);
+        } else {
+          // Insert new social media
+          return db.query(sql_insert_6, [viewPageId, social, link]);
+        }
+      });
+      await Promise.all(socialPromises);
+    }
+
+    res.status(200).send(`Update ${Treeview.name} Card is being Updated!`);
+  } catch (error) {
+    console.error("Error in putBusinessContent:", error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -452,6 +656,7 @@ module.exports = {
   postCategory,
   putCategoryHeader,
   putCategoryChild,
+  putBusinessContent,
   postCategoryChildUpdate,
   postBusinessContent,
 };
