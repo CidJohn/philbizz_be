@@ -10,6 +10,7 @@ const cardSettings = async (req, res) => {
       b.paragraph,
       b.description AS headdesc,
       cs.location,
+      cs.types,
       cs.title,
       cs.images AS card_image,
       cs.description
