@@ -34,6 +34,7 @@ const {
   getCompany_personnel,
   getCompany_product,
   getCompany_social,
+  putBusinessContent,
 } = require("../controllers/businessController");
 const {
   BlogSettings,
@@ -93,5 +94,6 @@ router.put("/treeview/child/put/data", putTreeViewChild);
 router.put("/category/put/header/data", putCategoryHeader);
 router.put("/category/child/put/data", putCategoryChild);
 router.put("/card-content/put/data", putCardContent)
+router.put("/company-content/put/data", putBusinessContent);
 
 module.exports = router;
