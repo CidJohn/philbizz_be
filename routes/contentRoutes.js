@@ -46,6 +46,7 @@ const {
   BlogLiked,
   GetBlogLikedStatus,
   postBlogContent,
+  putBlogUpdate,
 } = require("../controllers/blogController");
 const router = express.Router();
 
@@ -95,5 +96,6 @@ router.put("/category/put/header/data", putCategoryHeader);
 router.put("/category/child/put/data", putCategoryChild);
 router.put("/card-content/put/data", putCardContent)
 router.put("/company-content/put/data", putBusinessContent);
+router.put("/blog-content/put/data", putBlogUpdate);
 
 module.exports = router;

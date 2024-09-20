@@ -1,7 +1,6 @@
 const db = require("../db_conn/db");
 const path = require("path");
 const fs = require("fs");
-const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { imageURL } = require("./cardsettingController");
 
@@ -369,11 +368,9 @@ const putCategoryChild = async (req, res) => {
   let _sql = `UPDATE tblcategory SET name = ? WHERE id = ?`;
 
   try {
-    // Loop through the child object and update the corresponding rows
     for (const key in child) {
       if (child.hasOwnProperty(key)) {
         const { id, name } = child[key];
-        // Only update if the name exists and is not empty
         if (name && name.trim() !== "") {
           await db.query(_sql, [name, id]);
         }
@@ -565,7 +562,6 @@ const putBusinessContent = async (req, res) => {
 
       await db.query(sql_update_3, [TextEditor, viewPageId]);
 
-      // Personnel update/insert
       const personnelPromises = Personnel.entries.map(async (entry) => {
         const {
           id,
@@ -576,16 +572,14 @@ const putBusinessContent = async (req, res) => {
         } = entry;
 
         if (!personnelName || !position || !imagePreview) {
-          return; // Skip if any required field is missing
+          return;
         }
 
         if (id && typeof id === "string") {
           const { id: personnelID } = jwt.verify(id, process.env.SECRET_KEY); // Extract just the ID
           if (deleteEntry) {
-            // Delete personnel
             return db.query(sql_delete_4, [personnelID]);
           } else {
-            // Update personnel
             return db.query(sql_update_4, [
               personnelName,
               position,
@@ -604,31 +598,25 @@ const putBusinessContent = async (req, res) => {
       });
       await Promise.all(personnelPromises);
 
-      // Product update/insert
       const productPromises = TextLine.option.map(async (product) => {
         const { id, value } = product;
 
         if (id && typeof id === "string") {
-          // Update product
           const { id: productID } = jwt.verify(id, process.env.SECRET_KEY);
           return db.query(sql_update_5, [value, productID]);
         } else {
-          // Insert new product
           return db.query(sql_insert_5, [viewPageId, value]);
         }
       });
       await Promise.all(productPromises);
 
-      // Social media update/insert
       const socialPromises = TextLine.social.map(async (item) => {
         const { id, social, link } = item;
 
         if (id && typeof id === "string") {
-          // Update social media
           const { id: socialID } = jwt.verify(id, process.env.SECRET_KEY);
           return db.query(sql_update_6, [social, link, socialID]);
         } else {
-          // Insert new social media
           return db.query(sql_insert_6, [viewPageId, social, link]);
         }
       });
@@ -641,6 +629,8 @@ const putBusinessContent = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+
 
 module.exports = {
   getBusinessData,

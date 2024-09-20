@@ -80,7 +80,7 @@ const BlogSettings = async (req, res) => {
 const BlogContent = async (req, res) => {
   const { title, username } = req.query;
   let sql = `
-    SELECT t1.title, t1.description, t1.imageURL AS titleImage, t1.image, t2.imageURL AS contentImage, t2.description AS contentDESC,
+    SELECT t1.id, t1.title, t1.description, t1.imageURL AS titleImage, t1.image, t2.imageURL AS contentImage, t2.description AS contentDESC,
     t2.content
     FROM tblblog_settings t1
     JOIN tblblog_content t2 ON t1.id = t2.contentID
@@ -93,7 +93,13 @@ const BlogContent = async (req, res) => {
     if (rows.length === 0) {
       return res.status(404).json({ message: "Blog not found" });
     }
+    // Encrypt the blog ID using JWT
+    const encryptedID = jwt.sign({ id: rows[0].id }, process.env.SECRET_KEY, {
+      expiresIn: "1h",
+    });
+
     const blogData = {
+      blogToken: encryptedID,
       title: rows[0].title,
       description: rows[0].description,
       contentDesc: rows[0].contentDesc,
@@ -327,6 +333,47 @@ const postBlogContent = async (req, res) => {
   }
 };
 
+const putBlogUpdate = async (req, res) => {
+  const { header, content } = req.body;
+  let sql = `UPDATE tblblog_settings SET title = ? , image = ? , description = ? WHERE id = ?`;
+  let sql_2 = "UPDATE tblblog_content SET content = ? WHERE contentID = ?";
+
+  try {
+    // Validate the required fields
+    if (!header.text.title || !content) {
+      return res.status(400).json({ message: "Title and content are required" });
+    }
+
+    let decodedToken;
+    try {
+      decodedToken = jwt.verify(header.text.id, process.env.SECRET_KEY);
+    } catch (jwtError) {
+      console.error("JWT Verification Error:", jwtError.message);
+      return res.status(401).json({ message: "Invalid token" });
+    }
+
+    // Extract only the 'id' from the JWT payload
+    const blogID = decodedToken.id;
+
+    // Execute the first query to update blog settings
+    const result1 = await db.query(sql, [
+      header.text.title,
+      header.image,
+      header.text.description,
+      blogID,
+    ]);
+
+    // Execute the second query to update blog content
+    const result2 = await db.query(sql_2, [content, blogID]);
+
+    res.status(200).json({ message: "Blog updated successfully!" });
+  } catch (error) {
+    console.error("Database or Server Error:", error.message);
+    return res.status(500).json({ error: "Internal Server Error", message: error.message });
+  }
+};
+
+
 module.exports = {
   BlogSettings,
   BlogContent,
@@ -337,5 +384,6 @@ module.exports = {
   BlogLiked,
   GetBlogLikedStatus,
   postBlogContent,
+  putBlogUpdate,
   upload,
 };
