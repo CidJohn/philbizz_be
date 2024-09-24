@@ -504,7 +504,7 @@ const putBusinessContent = async (req, res) => {
   let _sql_2 = `SELECT id FROM tblcompanysettings WHERE parentID = ? AND name = ?`;
   let _sql_3 = `SELECT id FROM tblcompany_viewpage WHERE companyID = ?`;
 
-  let sql_update = `UPDATE tblcompanysettings SET parentID=?, name=?, description=?, image=? WHERE id = ?`;
+  let sql_update = `UPDATE tblcompanysettings SET parentID = ?, name = ?, description = ?, image = ? WHERE id = ?`;
   let sql_update_2 = `UPDATE tblcompany_viewpage SET \`desc\`= ?, person = ?, contact = ?, email = ?, address = ?, business = ?, locationURL = ? WHERE id = ?`;
   let sql_update_3 = `UPDATE tblcompany_image SET contentEditor = ? WHERE imageID = ?`;
 
@@ -525,14 +525,24 @@ const putBusinessContent = async (req, res) => {
     const categoryId = categoryID[0].id;
     const [settingsID] = await db.query(_sql_2, [categoryId, Treeview.title]);
 
-    if (settingsID.length === 0)
+    if (settingsID.length === 0) {
+      console.log(
+        "Settings not found for parentID:",
+        categoryId,
+        " and name:",
+        Treeview.title
+      );
       return res.status(404).json({ error: "Settings not found" });
+    }
 
     const settingId = settingsID[0].id;
+    const treeChild = Treeview.child ? Treeview.child : Treeview.childloc;
+    const [categoryUpdateID] = await db.query(_sql, [treeChild]);
 
-    const [categoryUpdateID] = await db.query(_sql, [Treeview.child]);
     if (categoryUpdateID.length > 0) {
       const categoryUpdateId = categoryUpdateID[0].id;
+      if (!categoryUpdateId)
+        return res.status(404).json({ error: "Settings not found" });
       await db.query(sql_update, [
         categoryUpdateId,
         TextLine.required.title,
@@ -629,8 +639,6 @@ const putBusinessContent = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-
-
 
 module.exports = {
   getBusinessData,
