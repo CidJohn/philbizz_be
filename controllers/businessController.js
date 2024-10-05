@@ -71,7 +71,7 @@ const getBusinessCategories = async (req, res) => {
 const getCompanySettings = async (req, res) => {
   const sql = `
     SELECT  t1.name AS parentName,
-    t2.name AS title, t2.description AS description, t2.image 
+    t2.name AS title, t2.description AS description, t2.image, t2.created_at 
     FROM tblcategory t1 JOIN  tblcompanysettings t2 ON
     t1.id = t2.parentID JOIN  tblcompanycategory t3 ON
     t3.id = t1.parentID

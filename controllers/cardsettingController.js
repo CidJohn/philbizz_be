@@ -71,7 +71,7 @@ const cardDesc = async (req, res) => {
 
 const cardInfo = async (req, res) => {
   const header = req.params.type;
-  const sql = `SELECT t2.id AS ParentID, t2.name AS Name,t2.desc,t2.content AS Content, t2.icon_image, t2.contact, t2.email
+  const sql = `SELECT t2.id AS ParentID, t1.description AS address, t1.images, t2.name AS Name,t2.desc,t2.content AS Content, t2.icon_image, t2.contact, t2.email
                 ,t2.menu_image, t2.location_image, t2.servicetype AS type FROM tblcard_settings t1
                 INNER JOIN tblcard_info t2
                 ON t1.id = t2.cardID 
@@ -111,23 +111,21 @@ const postCardContent = async (req, res) => {
   const sql_2 = `INSERT INTO tblcard_info(cardID, name, contact, email, \`desc\`, content, servicetype, icon_image, location_image) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
   const sql_3 = `INSERT INTO tblcard_image(imageID, imageURL) VALUES (?, ?)`;
+  const sql_4 = `INSERT INTO tblcard_social(socialID, SocialMedia, SocialValue) VALUES (?,?,?)`;
 
   try {
-    // Check if the business exists
     const [result] = await db.query(_sql, [Treeview.name]);
     if (result.length > 0) {
       const businessID = result[0].id;
 
-      // Insert into tblcard_settings
       await db.query(sql_1, [
         businessID,
         Treeview.child,
         TextLine.required.title,
-        TextLine.required.image,
-        TextLine.required.description,
+        Treeview.imageTitle,
+        TextLine.required.address,
       ]);
 
-      // Check if the card settings exist
       const [settingResult] = await db.query(_sql_2, [
         Treeview.child,
         TextLine.required.title,
@@ -136,28 +134,30 @@ const postCardContent = async (req, res) => {
       if (settingResult.length > 0) {
         const cardID = settingResult[0].id;
 
-        // Insert into tblcard_info
         await db.query(sql_2, [
           cardID,
           TextLine.required.title,
           TextLine.required.contact,
           TextLine.required.email,
           TextLine.required.description,
-          TextEditor, // Insert QuillJS content here
+          TextEditor,
           TextLine.required.service,
           TextLine.required.image,
           TextLine.required.location,
         ]);
 
-        // Fetch card info and insert images from the options
         const [resultCardInfo] = await db.query(_sql_3, [cardID]);
         if (resultCardInfo.length > 0) {
           const infoID = resultCardInfo[0].id;
 
-          // Insert each image from TextLine.option
           for (const key in TextLine.option) {
             const value = TextLine.option[key].value;
             await db.query(sql_3, [infoID, value]);
+          }
+
+          for (const item of TextLine.social) {
+            const { social, link } = item;
+            await db.query(sql_4, [infoID, social, link]);
           }
         }
       }
