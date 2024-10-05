@@ -173,30 +173,23 @@ const postCardContent = async (req, res) => {
 const putCardContent = async (req, res) => {
   const { Treeview, TextLine, TextEditor } = req.body;
 
-  // SQL queries
   const _sql_1 = `SELECT id FROM tblcard_settings WHERE location = ? AND title = ?`;
   const _sql_2 = `SELECT id FROM tblcard_info WHERE cardID = ?`;
-
-  // Fix the use of commas in the SQL queries instead of AND
   const sql_1 = `UPDATE tblcard_settings 
                  SET location = ?, title = ?, images = ?, description = ? 
                  WHERE id= ?`;
-
   const sql_2 = `UPDATE tblcard_info 
                  SET name = ?, contact = ?, email = ?, \`desc\` = ?, content = ?, 
                  servicetype = ?, icon_image = ?, location_image = ? 
                  WHERE id = ?`;
-
   const sql_3 = `UPDATE tblcard_image SET imageURL = ? WHERE id = ?`;
 
   try {
-    // Execute the first query to get the card ID
     const [res_1] = await db.query(_sql_1, [Treeview.childloc, Treeview.title]);
     if (res_1.length > 0) {
       const cardID = res_1[0].id;
 
       const childTree = Treeview.child ? Treeview.child : Treeview.childloc;
-      // Update tblcard_settings
       await db.query(sql_1, [
         childTree,
         TextLine.required.title,
@@ -205,12 +198,10 @@ const putCardContent = async (req, res) => {
         cardID,
       ]);
 
-      // Execute the second query to get the card info ID
       const [res_2] = await db.query(_sql_2, [cardID]);
       if (res_2.length > 0) {
         const infoID = res_2[0].id;
 
-        // Update tblcard_info
         await db.query(sql_2, [
           TextLine.required.title,
           TextLine.required.contact,
@@ -223,7 +214,6 @@ const putCardContent = async (req, res) => {
           infoID,
         ]);
 
-        // Update tblcard_image for each image in the TextLine.option array
         for (const key in TextLine.option) {
           const value = TextLine.option[key].value;
           const id = TextLine.option[key].id;
@@ -238,6 +228,20 @@ const putCardContent = async (req, res) => {
   }
 };
 
+const getSocialContent = async (req, res) => {
+  const {id} = req.query;
+
+  let sql = `SELECT SocialMedia, SocialValue FROM tblcard_social WHERE socialID = ?`
+
+  try {
+    const [result] = await db.query(sql, [id]);
+    res.json(result)
+  } catch (error) {
+    console.error("Database query error:", error);
+    res.status(500).json({ error: error.message });
+  }
+}
+
 module.exports = {
   cardSettings,
   cardPath,
@@ -246,4 +250,5 @@ module.exports = {
   imageURL,
   postCardContent,
   putCardContent,
+  getSocialContent
 };

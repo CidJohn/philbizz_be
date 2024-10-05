@@ -16,6 +16,7 @@ const {
   imageURL,
   postCardContent,
   putCardContent,
+  getSocialContent,
 } = require("../controllers/cardsettingController");
 const { getLanguage } = require("../controllers/translateController");
 const {
@@ -60,6 +61,7 @@ router.get("/card_path", cardPath);
 router.get("/card_info/:type", cardInfo);
 router.get("/business-data", getBusinessData);
 router.get("/imageURL/:type", imageURL);
+router.get("/soical/content", getSocialContent)
 
 //company
 router.get("/homeview-business", getHomeViewBusiness);
